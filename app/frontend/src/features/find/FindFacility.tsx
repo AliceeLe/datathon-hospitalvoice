@@ -8,7 +8,8 @@ import { StepProgress } from '../../components/ui/StepProgress';
 import { TextField } from '../../components/ui/TextField';
 import { Button } from '../../components/ui/Button';
 import { askHospitals } from '../../lib/api';
-import { legacyUrl, saveChat } from '../../lib/chats';
+import { saveChat } from '../../lib/chats';
+import { href, navigate } from '../../lib/router';
 import { speechLang, type Key, type Lang } from '../../lib/i18n';
 import { canListen, listenOnce, speak } from '../../lib/speech';
 import { NEEDS } from './needs';
@@ -77,7 +78,7 @@ export function FindFacility({ lang, t, readAloud }: Props) {
         caseCtx: { need: need.value, address: place.value, freq: '', emergency, hospitals },
         messages: [{ kind: hospitals.length ? 'cards' : 'answer', q: `${need.label} · ${place.label}`, data, isFirst: true }],
       });
-      window.location.assign(legacyUrl(`chat=${encodeURIComponent(id)}`));   // results, Contact and follow-ups
+      navigate(href.chat(id));   // results, Contact and follow-ups
     } catch {
       setSearching(false); setFailed(true);
     }
