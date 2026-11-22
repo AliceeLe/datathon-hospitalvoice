@@ -40,9 +40,9 @@ def ask_genie(question, conversation_id=None):
         conv_id = resp.conversation_id
         msg_id = resp.message_id
 
-    for _ in range(60):
+    for _ in range(120):
         import time as t
-        t.sleep(2)
+        t.sleep(1)
         msg = w.genie.get_message(SPACE_ID, conv_id, msg_id)
         if getattr(msg.status, "value", msg.status) in (
             "COMPLETED", "FAILED", "CANCELLED",

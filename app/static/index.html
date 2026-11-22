@@ -921,6 +921,12 @@
     <button class="lang-btn" data-lang="ta" onclick="setLang('ta')" title="தமிழ்">தமி</button>
     <button class="lang-btn" data-lang="te" onclick="setLang('te')" title="తెలుగు">తె</button>
   </div>
+  <button id="tts-toggle" onclick="toggleTTS()" title="Toggle read-aloud"
+    style="margin-left:10px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);
+           background:none;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;
+           font-family:inherit;transition:all 0.2s;white-space:nowrap">
+    🔇 Read Aloud
+  </button>
 </div>
 
 <!-- ══ USER PANEL ══ -->
@@ -1263,6 +1269,35 @@ function isInsufficient(data) {
   return !hasRows && INSUFFICIENT_RE.test(data.answer);
 }
 
+// ── Text-to-speech ──────────────────────────────────────────────────────────
+let ttsEnabled = false;
+
+function toggleTTS() {
+  ttsEnabled = !ttsEnabled;
+  const btn = document.getElementById('tts-toggle');
+  if (ttsEnabled) {
+    btn.textContent = '🔊 Read Aloud';
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.color = 'var(--accent)';
+    btn.style.background = 'var(--accent-glow)';
+  } else {
+    btn.textContent = '🔇 Read Aloud';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--muted)';
+    btn.style.background = 'none';
+    window.speechSynthesis && window.speechSynthesis.cancel();
+  }
+}
+
+function speakText(text) {
+  if (!ttsEnabled || !window.speechSynthesis || !text) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = langCode(currentLang);
+  utt.rate = 0.95;
+  window.speechSynthesis.speak(utt);
+}
+
 function renderAnswer(q, data, isFirst) {
   if (isInsufficient(data)) data = { answer: t(isFirst ? 'nothing' : 'insufficient') };
   const div = document.createElement('div');
@@ -1278,6 +1313,7 @@ function renderAnswer(q, data, isFirst) {
   const container = document.getElementById('answers');
   container.appendChild(div);
   if (!restoring) div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!restoring) speakText(data.answer || t('no_answer_text'));
 }
 
 function renderCards(q, data) {
