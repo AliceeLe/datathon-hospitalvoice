@@ -9,3 +9,7 @@ __pycache__/
 .DS_Store
 ranking_v2/out/
 *.bak*
+
+# frontend build tooling (the built files in app/static are committed)
+node_modules/
+app/frontend/dist/

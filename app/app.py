@@ -344,6 +344,12 @@ def index():
     return send_from_directory("static", "index.html")
 
 
+@app.route("/legacy")
+def legacy():
+    """Previous single-page UI: results/Contact flow, Referral tracker and Planner (new Find Facility is at /)."""
+    return send_from_directory("static", "legacy.html")
+
+
 @app.route("/api/ask", methods=["POST"])
 def api_ask():
     body = request.get_json(force=True)

@@ -312,7 +312,7 @@ function refDone(caseId, d) {
     ${REF[caseId] && REF[caseId].bring ? `<div class="lead">🎒 ${t('ref_bring_label')}: ${escHtml(REF[caseId].bring)}</div>` : ''}
     <div class="ref-grid two">
       <button class="ref-btn ok" onclick="refLock(null); setMode('tracker')">📋 ${t('ref_open_tracker')}</button>
-      <button class="ref-btn" onclick="newChat()">➕ ${t('new_patient').replace(/^\+\s*/, '')}</button>
+      <button class="ref-btn" onclick="newConversation()">➕ ${t('new_patient').replace(/^\+\s*/, '')}</button>
     </div>`);
 }
 
