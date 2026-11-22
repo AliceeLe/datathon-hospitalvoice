@@ -1,0 +1,11 @@
+# raw dataset copy (from the Databricks Marketplace listing) and scratch work
+data/
+genie_voice_app_merge/
+# local tooling / generated
+.venv/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+ranking_v2/out/
+*.bak*

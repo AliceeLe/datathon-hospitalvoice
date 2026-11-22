@@ -1,0 +1,90 @@
+============================================================================================================== 
+Q: dialysis near Darbhanga
+status: COMPLETED 
+SQL: SELECT f.facility_name, f.city, f.state, f.latitude, f.longitude, e.confidence, e.evidence_quote, f.data_quality_notes, f.phone FROM workspace.datathon.facilities_clean f JOIN workspace.datathon.facility_service_evidence e ON f.facility_id = e.facility_id WHERE e.service_key = 'dialysis' AND (lower(f.city) = 'darbhanga' OR lower(f.state) = 'bihar') AND e.confidence IN ('HIGH', 'MEDIUM') ORDER BY CASE e.confidence WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END LIMIT 10
+ROWS: 10 | cols: ['facility_name', 'city', 'state', 'latitude', 'longitude', 'confidence', 'evidence_quote', 'data_quality_notes', 'phone']
+    {'facility_name': 'Patna Dialysis Centre', 'city': 'Patna', 'state': 'Bihar', 'confidence': 'HIGH', 'evidence_quote': 'Hemodialysis is performed three or more times a week', 'data_quality_notes': 'details come from a web page shared with 1 other facilities'}
+    {'facility_name': 'Nectar Hospital', 'city': 'Patna', 'state': 'Bihar', 'confidence': 'HIGH', 'evidence_quote': 'Provides dialysis treatment in a dedicated dialysis unit', 'data_quality_notes': ''}
+    {'facility_name': 'Rastra Kavi Dinkar Blood Bank, Sadar Hospital', 'city': 'Gopalganj', 'state': 'Bihar', 'confidence': 'HIGH', 'evidence_quote': 'Offers peritoneal dialysis', 'data_quality_notes': ''}
+    {'facility_name': 'Hi-Tech Emergency Hospital – Saguna More, Bailey Road, Patna-801503', 'city': 'Patna', 'state': 'Bihar', 'confidence': 'HIGH', 'evidence_quote': 'Dialysis unit', 'data_quality_notes': ''}
+TEXT: No facilities in Darbhanga are listed, but several in Bihar offer **dialysis** with high confidence. Examples include:
+- **Patna Dialysis Centre** in Patna ("Hemodialysis is performed three or more times a week", phone: +918541877685)
+- **Nectar Hospital** in Patna ("Provides dialysis treatment in a dedicated dialysis unit", phone: +919155990993)
+- **Rastra Kavi Dinkar Blood Bank, Sadar Hospital** in Gopalganj ("Offers peritoneal dialysis", phone: +916456223502)
+- **Hi-Tech Emergency Hospital – Saguna More, Bailey Road, Patna-801503** in Patna ("Dialysis unit", phone: +918102262107)
+- **Satyavrat Hospital** in Patna ("Hemodialysis is performed in the Hemodialysis Unit", phone: +919386156183)
+
+Please call ahead to confirm availability before referring a patient.
+============================================================================================================== 
+Q: My patient is 8 months pregnant and in obstructed labour in Barabanki. Where can she get a caesarean tonight?
+status: COMPLETED 
+SQL: SELECT f.facility_name, f.city, ROUND(111.045 * SQRT(POWER(f.latitude - p.latitude, 2) + POWER(f.longitude - p.longitude, 2)), 1) AS distance_km, e.confidence, e.evidence_quote, f.data_quality_notes, f.phone FROM workspace.datathon.facilities_clean f JOIN workspace.datathon.facility_service_evidence e ON f.facility_id = e.facility_id JOIN workspace.datathon.place_lookup p ON lower(p.place_name) = 'barabanki' WHERE e.service_key = 'c_section' AND e.confidence IN ('HIGH', 'MEDIUM') AND f.latitude IS NOT NULL AND f.longitude IS NOT NULL AND ROUND(111.045 * SQRT(POWER(f.latitude - p.latitude, 2) +
+ROWS: 3 | cols: ['facility_name', 'city', 'distance_km', 'confidence', 'evidence_quote', 'data_quality_notes', 'phone']
+    {'facility_name': 'Krishna Medical Centre', 'city': 'Lucknow', 'distance_km': '28.1', 'confidence': 'HIGH', 'evidence_quote': 'Obstetrics and gynaecology services including ANC, normal delivery, C-', 'data_quality_notes': ''}
+    {'facility_name': 'St.Joseph Hospital Lucknow', 'city': 'Lucknow', 'distance_km': '20.7', 'confidence': 'MEDIUM', 'evidence_quote': 'Caesarean Section', 'data_quality_notes': ''}
+    {'facility_name': 'Aiman Nursing Home', 'city': 'Lucknow', 'distance_km': '21.7', 'confidence': 'MEDIUM', 'evidence_quote': 'Caesarean section', 'data_quality_notes': ''}
+TEXT: Three facilities near Barabanki offer caesarean services with HIGH or MEDIUM confidence. The closest with HIGH confidence is **Krishna Medical Centre** in Lucknow (28.1 km away), with evidence: "Obstetrics and gynaecology services including ANC, normal delivery, C-section and high-risk pregnancy care". Other options with MEDIUM confidence include:
+- **St.Joseph Hospital Lucknow** (20.7 km, evidence: "Caesarean Section")
+- **Aiman Nursing Home** (21.7 km, evidence: "Caesarean section")
+
+Please phone ahead before referring: Krishna Medical Centre (+915222616064), Aiman Nursing Home (+915222356154).
+============================================================================================================== 
+Q: premature baby needs a ventilator, we are in Ranchi
+status: COMPLETED 
+SQL: SELECT f.facility_name, f.city, f.state, f.latitude, f.longitude, e.confidence, e.evidence_quote, f.data_quality_notes, f.phone FROM workspace.datathon.facilities_clean f JOIN workspace.datathon.facility_service_evidence e ON f.facility_id = e.facility_id WHERE f.city = 'Ranchi' AND e.service_key = 'nicu' AND e.confidence IN ('HIGH', 'MEDIUM') AND e.evidence_quote ILIKE '%ventilator%' AND f.latitude IS NOT NULL AND f.longitude IS NOT NULL ORDER BY e.confidence DESC, f.facility_name LIMIT 3
+ROWS: 1 | cols: ['facility_name', 'city', 'state', 'latitude', 'longitude', 'confidence', 'evidence_quote', 'data_quality_notes', 'phone']
+    {'facility_name': 'Rani Hospital', 'city': 'Ranchi', 'state': 'Jharkhand', 'confidence': 'HIGH', 'evidence_quote': 'NICU Level 3 with dedicated high-frequency ventilator and conventional', 'data_quality_notes': 'details come from a web page shared with 2 other facilities; 2 doctors'}
+TEXT: The facility **Rani Hospital** in Ranchi is listed with **HIGH** confidence for NICU services, specifically mentioning "NICU Level 3 with dedicated high-frequency ventilator and conventional ventilators". The distance is not specified, but the location is in Ranchi and the phone number is +916512360430. 
+
+Data quality note: details come from a web page shared with 2 other facilities, and only 2 doctors are listed for 225 beds, so staff count may be unreliable.
+
+Please phone ahead to confirm availability: +916512360430.
+============================================================================================================== 
+Q: bypass surgery Kozhikode
+status: COMPLETED 
+SQL: WITH target_place AS (SELECT latitude, longitude FROM workspace.datathon.place_lookup WHERE lower(place_name) = 'kozhikode' AND place_type IN ('city','city_alias','district_hq') LIMIT 1), ranked_facilities AS (SELECT f.facility_name, f.city, f.state, f.latitude, f.longitude, f.phone, f.data_quality_notes, e.confidence, e.evidence_quote, e.service_label, e.confidence_reason, e.evidence_level, e.all_evidence, e.quote_source, e.n_fields_mentioning, f.has_location_conflict, f.is_small_facility, f.num_beds, f.num_doctors, f.operator_type, f.facility_type, f.year_established, f.pin_code, f.website, 
+ROWS: 3 | cols: ['facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_quote', 'data_quality_notes', 'phone']
+    {'facility_name': 'Metromed International Cardiac Centre', 'city': 'Kozhikode', 'state': 'Kerala', 'distance_km': '5.042452204132712', 'confidence': 'HIGH', 'evidence_quote': 'Open Heart Surgery', 'data_quality_notes': ''}
+    {'facility_name': 'Moulana Hospital', 'city': 'Perintalmanna', 'state': 'Malappuram', 'distance_km': '56.81291473399077', 'confidence': 'HIGH', 'evidence_quote': 'Performs open heart surgery; Moulana Hospital is the first centre in t', 'data_quality_notes': ''}
+    {'facility_name': 'Mother Care Hospital', 'city': 'Mannarkkad', 'state': 'Kerala', 'distance_km': '75.33329701019858', 'confidence': 'HIGH', 'evidence_quote': 'CABG surgery using arterial conduits', 'data_quality_notes': ''}
+TEXT: Three facilities near Kozhikode offer bypass (cardiac) surgery with strong evidence:
+- **Metromed International Cardiac Centre** in Kozhikode (5 km away, HIGH confidence, "Open Heart Surgery", phone: +919693969347)
+- **Moulana Hospital** in Perintalmanna (57 km away, HIGH confidence, "Performs open heart surgery; Moulana Hospital is the first centre in the Malappuram district to perform Open Heart surgery", phone: +914933300600)
+- **Mother Care Hospital** in Mannarkkad (75 km away, HIGH confidence, "CABG surgery using arterial conduits", phone: +919946690009)
+
+All facilities are within 80 km and have HIGH confidence for bypass surgery. Please phone ahead to confirm availability before referring.
+============================================================================================================== 
+Q: burn unit near Bastar
+status: COMPLETED 
+SQL: WITH bastar_coords AS (SELECT latitude, longitude FROM `workspace`.`datathon`.`place_lookup` WHERE lower(`place_name`) = 'bastar' AND latitude IS NOT NULL AND longitude IS NOT NULL LIMIT 1), burn_facilities AS (SELECT f.`facility_id`, f.`facility_name`, f.`city`, f.`state`, f.`latitude`, f.`longitude`, f.`phone`, f.`data_quality_notes`, s.`confidence`, s.`evidence_quote` FROM `workspace`.`datathon`.`facilities_clean` f JOIN `workspace`.`datathon`.`facility_service_evidence` s ON f.`facility_id` = s.`facility_id` WHERE s.`service_key` = 'burn_care' AND (s.`confidence` = 'HIGH' OR s.`confidence`
+ROWS: 3 | cols: ['facility_name', 'city', 'distance_km', 'confidence', 'evidence_quote', 'data_quality_notes', 'phone']
+    {'facility_name': 'Agrawal Plastic Cosmetic Surgery and Burns Center', 'city': 'Raipur', 'distance_km': '240.7', 'confidence': 'MEDIUM', 'evidence_quote': '"Provides burns treatment"', 'data_quality_notes': 'only 4 beds listed'}
+    {'facility_name': 'Jeewan Memorial Hospital', 'city': 'Raipur', 'distance_km': '244.1', 'confidence': 'MEDIUM', 'evidence_quote': '"Performs Burns treatment"', 'data_quality_notes': ''}
+    {'facility_name': 'Vardaan Hospital', 'city': 'Raipur', 'distance_km': '244.2', 'confidence': 'MEDIUM', 'evidence_quote': '"Poison Control Center and Burns Treatment Center attached to the ICU ', 'data_quality_notes': ''}
+TEXT: Evidence is weak: call the facility to confirm before referring. The closest facilities with burn care within 300 km of Bastar are:
+- **Agrawal Plastic Cosmetic Surgery and Burns Center** in Raipur (240.7 km, MEDIUM confidence, "Provides burns treatment", only 4 beds listed, phone: +919575042806)
+- **Jeewan Memorial Hospital** in Raipur (244.1 km, MEDIUM confidence, "Performs Burns treatment", phone: +917712428478)
+- **Vardaan Hospital** in Raipur (244.2 km, MEDIUM confidence, "Poison Control Center and Burns Treatment Center attached to the ICU unit", phone: +919826003089)
+
+Please phone ahead to confirm service availability before referring.
+============================================================================================================== 
+Q: MRI scan near Pune
+status: COMPLETED 
+SQL: SELECT f.facility_name, f.city, f.state, f.latitude, f.longitude, e.confidence, e.evidence_quote, f.data_quality_notes, f.phone FROM workspace.datathon.facilities_clean f JOIN workspace.datathon.facility_service_evidence e ON f.facility_id = e.facility_id WHERE e.service_key = 'mri' AND lower(f.city) = 'pune' AND (e.confidence = 'HIGH' OR e.confidence = 'MEDIUM') ORDER BY CASE e.confidence WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END LIMIT 3
+ROWS: 3 | cols: ['facility_name', 'city', 'state', 'latitude', 'longitude', 'confidence', 'evidence_quote', 'data_quality_notes', 'phone']
+    {'facility_name': 'SAI Spandan Hospital', 'city': 'Pune', 'state': 'Maharashtra', 'confidence': 'HIGH', 'evidence_quote': 'MRI scanner', 'data_quality_notes': ''}
+    {'facility_name': 'Pioneer Hospital', 'city': 'Pune', 'state': 'Maharashtra', 'confidence': 'HIGH', 'evidence_quote': 'MRI scanner', 'data_quality_notes': ''}
+    {'facility_name': 'Symbiosis University Hospital', 'city': 'Pune', 'state': 'Maharashtra', 'confidence': 'HIGH', 'evidence_quote': 'Performs diagnostic imaging procedures using a 3T MRI scanner and a 12', 'data_quality_notes': '1 doctors listed for 900 beds: staff count unreliable'}
+TEXT: Three facilities in Pune are recommended for MRI scans, all with **HIGH** confidence based on the evidence provided. These are:
+- **SAI Spandan Hospital** ("MRI scanner", phone: +919370558648)
+- **Pioneer Hospital** ("MRI scanner", phone: +918975229082)
+- **Symbiosis University Hospital** ("Performs diagnostic imaging procedures using a 3T MRI scanner and a 128-slice CT scanner", phone: +912061930000, note: staff count may be unreliable)
+
+Please phone ahead to confirm availability before referring.
+============================================================================================================== 
+Q: How many facilities in Bihar have high-confidence NICU evidence?
+status: COMPLETED 
+SQL: SELECT COUNT(DISTINCT f.facility_id) AS high_confidence_nicu_facilities FROM `workspace`.`datathon`.`facility_service_evidence` e JOIN `workspace`.`datathon`.`facilities_clean` f ON f.facility_id = e.facility_id WHERE f.state = 'Bihar' AND e.service_key = 'nicu' AND e.confidence = 'HIGH'
+ROWS: 1 | cols: ['high_confidence_nicu_facilities']
+    {'high_confidence_nicu_facilities': '4'}
+TEXT: There are **4 facilities** in Bihar with **high-confidence NICU evidence**. This count is based on distinct facility IDs meeting the specified criteria.

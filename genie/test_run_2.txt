@@ -1,0 +1,42 @@
+============================================================================================================== 
+Q: dialysis near Darbhanga
+status: COMPLETED 
+SQL: SELECT * FROM `workspace`.`datathon`.`find_facilities`(service_key => 'dialysis', place => 'Darbhanga', radius_km => 100)
+ROWS: 51 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'R. B. Memorial Hospital', 'city': 'Darbhanga', 'state': 'Bihar', 'distance_km': '0.2', 'confidence': 'MEDIUM', 'evidence_quote': 'Dialysis procedures are offered at R. B. Memorial Hospital', 'data_quality_notes': ''}
+    {'rank_no': '2', 'facility_name': 'Dr. Global Healthcare & Diabetes Centre (Dr. Naween Kumar)', 'city': 'Darbhanga', 'state': 'Bihar', 'distance_km': '3.8', 'confidence': 'MEDIUM', 'evidence_quote': 'Dialysis facility', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Phular Superspeciality Hospital, Road No-02, Juran Chappra, Muzaffarpu', 'city': 'Muzaffarpur', 'state': 'Bihar', 'distance_km': '52.7', 'confidence': 'MEDIUM', 'evidence_quote': 'Dialysis treatment is provided', 'data_quality_notes': ''}
+    {'rank_no': '4', 'facility_name': 'Prasad Hospital', 'city': 'Muzaffarpur', 'state': 'Bihar', 'distance_km': '53.8', 'confidence': 'MEDIUM', 'evidence_quote': 'Provides dialysis treatment', 'data_quality_notes': ''}
+============================================================================================================== 
+Q: premature baby needs a ventilator, we are in Ranchi
+status: COMPLETED 
+SQL: SELECT * FROM `workspace`.`datathon`.`find_facilities`(service_key => 'nicu', place => 'Ranchi', radius_km => 100)
+ROWS: 17 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'Rani Hospital', 'city': 'Ranchi', 'state': 'Jharkhand', 'distance_km': '0.9', 'confidence': 'HIGH', 'evidence_quote': 'NICU Level 3 with dedicated high-frequency ventilator and conventional', 'data_quality_notes': 'details come from a web page shared with 2 other facilities; 2 doctors'}
+    {'rank_no': '2', 'facility_name': 'Rajendra Institute of Medical Sciences', 'city': 'Ranchi', 'state': 'Jharkhand', 'distance_km': '2.3', 'confidence': 'HIGH', 'evidence_quote': 'Provides neonatal CPAP ventilation in the NICU/SCNU', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Bhagwan Mahavir Medica Superspeciality Hospital, Ranchi', 'city': 'Ranchi', 'state': 'Jharkhand', 'distance_km': '5.2', 'confidence': 'HIGH', 'evidence_quote': '300 beds including 66 CCU and NICU beds', 'data_quality_notes': 'details come from a web page shared with 1 other facilities; 1 doctors'}
+    {'rank_no': '4', 'facility_name': 'Santevita Hospital', 'city': 'Ranchi', 'state': 'Jharkhand', 'distance_km': '1.0', 'confidence': 'MEDIUM', 'evidence_quote': '24×7 NICU', 'data_quality_notes': 'details come from a web page shared with 1 other facilities'}
+============================================================================================================== 
+Q: MRI scan near Pune
+status: COMPLETED 
+SQL: SELECT * FROM `workspace`.`datathon`.`find_facilities`(service_key => 'mri', place => 'Pune', radius_km => 100)
+ROWS: 125 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'Deccan Hardikar Hospital', 'city': 'Pune', 'state': 'Maharashtra', 'distance_km': '1.1', 'confidence': 'HIGH', 'evidence_quote': '3T MRI plus CT scan imaging facilities', 'data_quality_notes': ''}
+    {'rank_no': '2', 'facility_name': 'Sunrise Diagnostic Center, Pune', 'city': 'Pune', 'state': 'Maharashtra', 'distance_km': '2.3', 'confidence': 'HIGH', 'evidence_quote': 'MRI scanner', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Sahyadri Speciality Labs Kondhwa (NIBM Road)', 'city': 'Pune', 'state': 'Maharashtra', 'distance_km': '5.7', 'confidence': 'HIGH', 'evidence_quote': 'MRI center (MRI scanner) available', 'data_quality_notes': ''}
+    {'rank_no': '4', 'facility_name': 'Aditya Birla Memorial Hospital', 'city': 'Pimpri-chinchwad', 'state': 'Pune', 'distance_km': '8.3', 'confidence': 'HIGH', 'evidence_quote': 'Cardiac MRI scanner', 'data_quality_notes': ''}
+============================================================================================================== 
+Q: my patient in Calicut needs a valve replacement
+status: COMPLETED 
+SQL: SELECT * FROM workspace.datathon.find_facilities('cardiac_surgery', 'Calicut', 120) ORDER BY rank_no LIMIT 10
+ROWS: 10 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'Metromed International Cardiac Centre', 'city': 'Kozhikode', 'state': 'Kerala', 'distance_km': '5.3', 'confidence': 'HIGH', 'evidence_quote': 'Open Heart Surgery', 'data_quality_notes': ''}
+    {'rank_no': '2', 'facility_name': 'Moulana Hospital', 'city': 'Perintalmanna', 'state': 'Malappuram', 'distance_km': '56.6', 'confidence': 'HIGH', 'evidence_quote': 'Performs open heart surgery; Moulana Hospital is the first centre in t', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Mother Care Hospital', 'city': 'Mannarkkad', 'state': 'Kerala', 'distance_km': '75.5', 'confidence': 'HIGH', 'evidence_quote': 'CABG surgery using arterial conduits', 'data_quality_notes': ''}
+    {'rank_no': '4', 'facility_name': 'Chest Hospital', 'city': 'Kozhikode', 'state': 'Kerala', 'distance_km': '0.5', 'confidence': 'MEDIUM', 'evidence_quote': 'Cardiothoracic Surgery department', 'data_quality_notes': ''}
+TEXT: For a patient in Calicut needing a valve replacement, the top recommended facilities with strong evidence are:
+- **Metromed International Cardiac Centre** (Kozhikode, 5.3 km, HIGH confidence): "Open Heart Surgery". Phone: +919693969347
+- **Moulana Hospital** (Perintalmanna, 56.6 km, HIGH confidence): "Performs open heart surgery; Moulana Hospital is the first centre in the Malappuram district to perform Open Heart surgery". Phone: +914933300600
+- **Mother Care Hospital** (Mannarkkad, 75.5 km, HIGH confidence): "CABG surgery using arterial conduits". Phone: +919946690009
+
+All three facilities are within 76 km and have specific evidence for cardiac surgery. Please phone ahead to confirm availability before referring.

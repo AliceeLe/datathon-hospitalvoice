@@ -1,0 +1,11 @@
+name	address_city	state	pin	type	operator	doctors	beds	dist_km	evidence_score	match_score	confidence	evidence_in	risk_flags	quote_from	evidence_quote	description_quote
+Aiman Nursing Home	Lucknow	Uttar Pradesh	226015	hospital	private	2	20	19.2	7	5.1	HIGH	procedure,capability		capability	Normal delivery and Caesarean service	NULL
+Elite Hospital	Lucknow	Uttar Pradesh	226020	hospital	null	NULL	NULL	24.7	7	4.5	HIGH	procedure,capability	source page shared with 2 other(s)	capability	Cesarean delivery services	NULL
+Krishna Medical Centre	Lucknow	Uttar Pradesh	226001	hospital	private	NULL	107	24.8	7	4.5	HIGH	procedure,capability		capability	Obstetrics and gynaecology services including ANC, normal delivery, C-section and high-risk pregnancy care	NULL
+St.Joseph Hospital Lucknow	Lucknow	Uttar Pradesh	226010	hospital	private	22	180	18.7	5	3.1	MEDIUM	procedure		procedure	Caesarean Section	NULL
+Pawar'S Clinic	Lucknow	Uttar Pradesh	226024	clinic	private	NULL	NULL	23.4	5	2.7	MEDIUM	procedure	source page shared with 8 other(s)	procedure	Delivery by cesarean section (LSCS)	NULL
+BNK Hospital	Lucknow	Uttar Pradesh	226002	hospital	private	NULL	NULL	25.4	5	2.5	MEDIUM	procedure		procedure	Performs Lower Segment Caesarean Section (LSCS)	NULL
+Wellsun Medicity Hospital	Lucknow	Uttar Pradesh	226029	hospital	private	22	200	27.4	5	2.3	MEDIUM	procedure		procedure	Provides Caesarean section deliveries (C-section) in the Mother and Child Care department	NULL
+Sanjeevani Hospital	Unnao	Uttar Pradesh	209801	hospital	private	1	150	23.9	5	2.6	LOW	procedure	source page shared with 26 other(s); 1 doctors for 150 beds (staff count unreliable); LOCATION CONFLICT: coords 0.0 km from other Unnao facilities, 110.1 km from PIN 209xxx peers	procedure	Operation Delivery (LSCS)	NULL
+Surman Hospital	Kanpur	Uttar Pradesh	208025	hospital	private	NULL	NULL	25.6	5	2.4	LOW	procedure	LOCATION CONFLICT: coords 76.1 km from other Kanpur facilities, 76.1 km from PIN 208xxx peers	procedure	Provides normal delivery and cesarean delivery services	NULL
+Raza Clinic	Bareilly	Uttar Pradesh	243005	hospital	private	1	NULL	0.6	2	1.9	LOW	specialty only	LOCATION CONFLICT: coords 235.4 km from other Bareilly facilities, 235.4 km from PIN 243xxx peers	none (specialty tag only)	NULL	NULL

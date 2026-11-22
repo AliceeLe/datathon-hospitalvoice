@@ -1,0 +1,11 @@
+name	address_city	state	pin	type	operator	doctors	beds	dist_km	evidence_score	match_score	confidence	evidence_in	risk_flags	quote_from	evidence_quote	description_quote
+Indiana TMH Cardiac Centre, Thalassery	Thalassery	Kerala	670101	hospital	null	NULL	NULL	63.5	7	5.7	HIGH	procedure,capability		capability	Cardiology and Cardiothoracic & Vascular Surgery services are offered at Indiana TMH Cardiac Centre, Thalassery	NULL
+Daya Surgical Hospital	Guruvayoor	Kerala	680008	hospital	public	NULL	250	93.0	7	5.1	HIGH	procedure,capability		capability	Cardiac surgery capability	NULL
+Pvs Sunrise Hospital Calicut	Kozhikode	Kerala	673002	hospital	private	NULL	310	2.1	6	6.0	MEDIUM	procedure,capability		capability	Cardiothoracic Surgery department	NULL
+Metromed International Cardiac Centre	Kozhikode	Kerala	673014	hospital	private	NULL	200	5.1	6	5.9	MEDIUM	procedure,capability		capability	Specializes in Cardiothoracic surgery, Cardiology, and Minimally Invasive surgery	NULL
+Moulana Hospital	Perintalmanna	Malappuram	679322	hospital	private	NULL	NULL	56.7	6	4.9	MEDIUM	procedure,capability		capability	Cardiothoracic surgery service at Moulana Hospital	NULL
+Mother Care Hospital	Mannarkkad	Kerala	678582	hospital	private	14	NULL	75.4	6	4.5	MEDIUM	procedure,capability		capability	Has Cardiothoracic & Vascular Surgery department	NULL
+PVS Hospital	Calicut	Kerala	673002	hospital	private	100	310	2.1	4	4.0	MEDIUM	procedure	source page shared with 3 other(s)	procedure	Performs heart surgery	NULL
+Lal Memorial Hospital	Thrissur	Kerala	680712	hospital	null	NULL	NULL	108.7	6	3.8	MEDIUM	procedure,capability		capability	Cardiothoracic surgery program	NULL
+Malabar Medical College Hospital & Research Centre	Ulliyeri	Kerala	673323	hospital	private	NULL	NULL	19.6	4	3.6	MEDIUM	procedure		procedure	Performs coronary artery bypass grafting (CABG)	NULL
+Chest Hospital	Kozhikode	Kerala	673004	hospital	private	33	NULL	0.8	3	3.0	MEDIUM	capability		capability	Cardiothoracic Surgery department	NULL

@@ -1,0 +1,11 @@
+name	address_city	state	pin	type	operator	doctors	beds	dist_km	evidence_score	match_score	confidence	evidence_in	risk_flags	quote_from	evidence_quote	description_quote
+Vardaan Hospital	Raipur	Chhattisgarh	492001	hospital	private	NULL	NULL	244.2	6	-3.8	HIGH	capability,description		description	The hospital also houses a Poison Control Center and Burns Treatment Center at its ICU unit	 The hospital also houses a Poison Control Center and Burns Treatment Center at its ICU unit
+Agrawal Plastic Cosmetic Surgery and Burns Center	Raipur	Chhattisgarh	492001	clinic	private	1	4	240.6	7	-2.6	MEDIUM	procedure,capability	only 4 beds listed	capability	4-bed single specialty plastic surgery and burns center	NULL
+Jeewan Memorial Hospital	Raipur	Chhattisgarh	492007	hospital	private	2	21	244.0	5	-4.8	MEDIUM	procedure		procedure	Performs Burns treatment	NULL
+Global Star Hospital, Raipur	Raipur	Chhattisgarh	492010	hospital	private	40	150	246.7	5	-4.9	MEDIUM	procedure		procedure	Burn Unit & Plastic Surgery	NULL
+Usha Prime Hospital	Anakapalle	Andhra Pradesh	531001	hospital	null	NULL	100	186.4	2	-5.5	LOW	specialty only		none (specialty tag only)	NULL	NULL
+Medicover Woman & Child Hospitals	Visakhapatnam	Andhra Pradesh	530022	hospital	private	23	150	199.6	2	-6.0	LOW	specialty only		none (specialty tag only)	NULL	NULL
+Q1 Hospitals	Visakhapatnam	Andhra Pradesh	530040	hospital	private	NULL	100	199.9	2	-6.0	LOW	specialty only		none (specialty tag only)	NULL	NULL
+Queen’s NRI Hospital (Association with vijayanagaram Hospitals Pvt Ltd.) Mr.T.CH. Mouliswara rao. Opp SBI Main Branch, MG Road, Srinivasa Nagar, Vizianagaram.	Vizianagaram	Andhra Pradesh	530013	hospital	private	127	380	201.6	2	-6.1	LOW	specialty only		none (specialty tag only)	NULL	NULL
+Visakha Institute of Medical Sciences	Visakhapatnam	Andhra Pradesh	530040	hospital	public	50	NULL	201.8	2	-6.1	LOW	specialty only		none (specialty tag only)	NULL	NULL
+Sunitha Nursing Home	Visakhapatnam	Andhra Pradesh	530013	clinic	private	2	NULL	202.2	2	-6.1	LOW	specialty only		none (specialty tag only)	NULL	NULL

@@ -1,0 +1,67 @@
+============================================================================================================== 
+Q: dialysis near Darbhanga
+status: COMPLETED 
+SQL: SELECT * FROM `workspace`.`datathon`.`find_facilities`(service_key => 'dialysis', place => 'Darbhanga', radius_km => 100)
+ROWS: 51 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'R. B. Memorial Hospital', 'city': 'Darbhanga', 'state': 'Bihar', 'distance_km': '0.2', 'confidence': 'MEDIUM', 'evidence_quote': 'Dialysis procedures are offered at R. B. Memorial Hospital', 'data_quality_notes': ''}
+    {'rank_no': '2', 'facility_name': 'Dr. Global Healthcare & Diabetes Centre (Dr. Naween Kumar)', 'city': 'Darbhanga', 'state': 'Bihar', 'distance_km': '3.8', 'confidence': 'MEDIUM', 'evidence_quote': 'Dialysis facility', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Phular Superspeciality Hospital, Road No-02, Juran Chappra, Muzaffarpu', 'city': 'Muzaffarpur', 'state': 'Bihar', 'distance_km': '52.7', 'confidence': 'MEDIUM', 'evidence_quote': 'Dialysis treatment is provided', 'data_quality_notes': ''}
+    {'rank_no': '4', 'facility_name': 'Prasad Hospital', 'city': 'Muzaffarpur', 'state': 'Bihar', 'distance_km': '53.8', 'confidence': 'MEDIUM', 'evidence_quote': 'Provides dialysis treatment', 'data_quality_notes': ''}
+============================================================================================================== 
+Q: My patient is 8 months pregnant and in obstructed labour in Barabanki. Where can she get a caesarean tonight?
+status: COMPLETED 
+SQL: SELECT * FROM `workspace`.`datathon`.`find_facilities`(service_key => 'c_section', place => 'Barabanki', radius_km => 100)
+ROWS: 80 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'Krishna Medical Centre', 'city': 'Lucknow', 'state': 'Uttar Pradesh', 'distance_km': '25.1', 'confidence': 'HIGH', 'evidence_quote': 'Obstetrics and gynaecology services including ANC, normal delivery, C-', 'data_quality_notes': ''}
+    {'rank_no': '2', 'facility_name': 'St.Joseph Hospital Lucknow', 'city': 'Lucknow', 'state': 'Uttar Pradesh', 'distance_km': '19.0', 'confidence': 'MEDIUM', 'evidence_quote': 'Caesarean Section', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Aiman Nursing Home', 'city': 'Lucknow', 'state': 'Uttar Pradesh', 'distance_km': '19.5', 'confidence': 'MEDIUM', 'evidence_quote': 'Caesarean section', 'data_quality_notes': ''}
+    {'rank_no': '4', 'facility_name': "Pawar'S Clinic", 'city': 'Lucknow', 'state': 'Uttar Pradesh', 'distance_km': '23.7', 'confidence': 'MEDIUM', 'evidence_quote': 'Delivery by cesarean section (LSCS)', 'data_quality_notes': 'details come from a web page shared with 9 other facilities'}
+============================================================================================================== 
+Q: premature baby needs a ventilator, we are in Ranchi
+status: COMPLETED 
+SQL: SELECT * FROM `workspace`.`datathon`.`find_facilities`(service_key => 'nicu', place => 'Ranchi', radius_km => 100)
+ROWS: 17 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'Rani Hospital', 'city': 'Ranchi', 'state': 'Jharkhand', 'distance_km': '0.9', 'confidence': 'HIGH', 'evidence_quote': 'NICU Level 3 with dedicated high-frequency ventilator and conventional', 'data_quality_notes': 'details come from a web page shared with 2 other facilities; 2 doctors'}
+    {'rank_no': '2', 'facility_name': 'Rajendra Institute of Medical Sciences', 'city': 'Ranchi', 'state': 'Jharkhand', 'distance_km': '2.3', 'confidence': 'HIGH', 'evidence_quote': 'Provides neonatal CPAP ventilation in the NICU/SCNU', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Bhagwan Mahavir Medica Superspeciality Hospital, Ranchi', 'city': 'Ranchi', 'state': 'Jharkhand', 'distance_km': '5.2', 'confidence': 'HIGH', 'evidence_quote': '300 beds including 66 CCU and NICU beds', 'data_quality_notes': 'details come from a web page shared with 1 other facilities; 1 doctors'}
+    {'rank_no': '4', 'facility_name': 'ANVI Newborn and Child Hospital', 'city': 'Ranchi', 'state': 'Jharkhand', 'distance_km': '1.0', 'confidence': 'MEDIUM', 'evidence_quote': 'NICU and PICU services', 'data_quality_notes': ''}
+============================================================================================================== 
+Q: bypass surgery Kozhikode
+status: COMPLETED 
+SQL: SELECT * FROM workspace.datathon.find_facilities('cardiac_surgery', 'Kozhikode', 120) ORDER BY rank_no LIMIT 10
+ROWS: 10 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'Metromed International Cardiac Centre', 'city': 'Kozhikode', 'state': 'Kerala', 'distance_km': '5.0', 'confidence': 'HIGH', 'evidence_quote': 'Open Heart Surgery', 'data_quality_notes': 'listed phone +919693969347 is shared by 87 facilities (likely a direct'}
+    {'rank_no': '2', 'facility_name': 'Moulana Hospital', 'city': 'Perintalmanna', 'state': 'Malappuram', 'distance_km': '56.8', 'confidence': 'HIGH', 'evidence_quote': 'Performs open heart surgery; Moulana Hospital is the first centre in t', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Mother Care Hospital', 'city': 'Mannarkkad', 'state': 'Kerala', 'distance_km': '75.3', 'confidence': 'HIGH', 'evidence_quote': 'CABG surgery using arterial conduits', 'data_quality_notes': ''}
+    {'rank_no': '4', 'facility_name': 'Chest Hospital', 'city': 'Kozhikode', 'state': 'Kerala', 'distance_km': '2.1', 'confidence': 'MEDIUM', 'evidence_quote': 'Cardiothoracic Surgery department', 'data_quality_notes': ''}
+TEXT: For bypass surgery near Kozhikode, the top recommended facilities with strong evidence are:
+- **Metromed International Cardiac Centre** (Kozhikode, 5.0 km, HIGH): "Open Heart Surgery". Data quality note: listed phone is a shared directory line and was removed.
+- **Moulana Hospital** (Perintalmanna, 56.8 km, HIGH): "Performs open heart surgery; Moulana Hospital is the first centre in the Malappuram district to perform Open Heart surgery". Phone: +914933300600.
+- **Mother Care Hospital** (Mannarkkad, 75.3 km, HIGH): "CABG surgery using arterial conduits". Phone: +919946690009.
+
+Phone ahead to confirm availability before referring a patient.
+============================================================================================================== 
+Q: burn unit near Bastar
+status: COMPLETED 
+SQL: SELECT * FROM `workspace`.`datathon`.`find_facilities`(service_key => 'burn_care', place => 'Bastar', radius_km => 300)
+ROWS: 59 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'Agrawal Plastic Cosmetic Surgery and Burns Center', 'city': 'Raipur', 'state': 'Chhattisgarh', 'distance_km': '240.6', 'confidence': 'MEDIUM', 'evidence_quote': 'Provides burns treatment', 'data_quality_notes': 'only 4 beds listed'}
+    {'rank_no': '2', 'facility_name': 'Jeewan Memorial Hospital', 'city': 'Raipur', 'state': 'Chhattisgarh', 'distance_km': '244.0', 'confidence': 'MEDIUM', 'evidence_quote': 'Performs Burns treatment', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Vardaan Hospital', 'city': 'Raipur', 'state': 'Chhattisgarh', 'distance_km': '244.2', 'confidence': 'MEDIUM', 'evidence_quote': 'Poison Control Center and Burns Treatment Center attached to the ICU u', 'data_quality_notes': ''}
+    {'rank_no': '4', 'facility_name': 'Global Star Hospital, Raipur', 'city': 'Raipur', 'state': 'Chhattisgarh', 'distance_km': '246.7', 'confidence': 'MEDIUM', 'evidence_quote': 'Burn Unit & Plastic Surgery', 'data_quality_notes': ''}
+============================================================================================================== 
+Q: MRI scan near Pune
+status: COMPLETED 
+SQL: SELECT * FROM `workspace`.`datathon`.`find_facilities`(service_key => 'mri', place => 'Pune', radius_km => 100)
+ROWS: 125 | cols: ['rank_no', 'facility_name', 'city', 'state', 'distance_km', 'confidence', 'evidence_level', 'evidence_quote', 'quote_source', 'confidence_reason']
+    {'rank_no': '1', 'facility_name': 'Deccan Hardikar Hospital', 'city': 'Pune', 'state': 'Maharashtra', 'distance_km': '1.1', 'confidence': 'HIGH', 'evidence_quote': '3T MRI plus CT scan imaging facilities', 'data_quality_notes': ''}
+    {'rank_no': '2', 'facility_name': 'Sunrise Diagnostic Center, Pune', 'city': 'Pune', 'state': 'Maharashtra', 'distance_km': '2.3', 'confidence': 'HIGH', 'evidence_quote': 'MRI scanner', 'data_quality_notes': ''}
+    {'rank_no': '3', 'facility_name': 'Sahyadri Speciality Labs Kondhwa (NIBM Road)', 'city': 'Pune', 'state': 'Maharashtra', 'distance_km': '5.7', 'confidence': 'HIGH', 'evidence_quote': 'MRI center (MRI scanner) available', 'data_quality_notes': ''}
+    {'rank_no': '4', 'facility_name': 'Aditya Birla Memorial Hospital', 'city': 'Pimpri-chinchwad', 'state': 'Pune', 'distance_km': '8.3', 'confidence': 'HIGH', 'evidence_quote': 'Cardiac MRI scanner', 'data_quality_notes': ''}
+============================================================================================================== 
+Q: How many facilities in Bihar have high-confidence NICU evidence?
+status: COMPLETED 
+SQL: SELECT f.state, COUNT(*) AS high_confidence_nicu_facilities FROM `workspace`.`datathon`.`facility_service_evidence` e JOIN `workspace`.`datathon`.`facilities_clean` f ON f.facility_id = e.facility_id WHERE e.service_key = 'nicu' AND e.confidence = 'HIGH' AND f.state = 'Bihar' AND f.state IS NOT NULL AND f.facility_id IS NOT NULL GROUP BY f.state
+ROWS: 1 | cols: ['state', 'high_confidence_nicu_facilities']
+    {'state': 'Bihar', 'high_confidence_nicu_facilities': '4'}
+TEXT: There are **4 facilities** in Bihar with **high-confidence NICU evidence**. This count is based on facilities where the state is Bihar and the confidence level for NICU evidence is marked as HIGH.

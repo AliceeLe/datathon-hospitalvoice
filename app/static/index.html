@@ -1,0 +1,2479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtue Health — Facility Finder & Planner Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #080b14;
+    --surface: #0f1420;
+    --surface2: #161c2d;
+    --border: rgba(255,255,255,0.08);
+    --accent: #5b8def;
+    --accent2: #8b5cf6;
+    --accent-glow: rgba(91,141,239,0.2);
+    --gradient: linear-gradient(135deg, #5b8def, #8b5cf6);
+    --emergency: #ef4444;
+    --success: #22c55e;
+    --warn: #f59e0b;
+    --text: #e8eaf0;
+    --muted: #6b7a99;
+    --radius: 16px;
+    --navbar-h: 68px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* ── Navbar ── */
+  .mode-bar {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px;
+    height: var(--navbar-h);
+    background: rgba(8,11,20,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 0 0 rgba(91,141,239,0.15), 0 4px 24px rgba(0,0,0,0.4);
+  }
+  .mode-bar::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--gradient);
+    border-radius: 0;
+  }
+
+  .logo {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .mode-toggle {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+    gap: 2px;
+  }
+  .mode-btn {
+    padding: 8px 22px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    color: var(--muted);
+    background: none;
+    font-family: inherit;
+    letter-spacing: -0.1px;
+  }
+  .mode-btn.active {
+    background: var(--gradient);
+    color: white;
+    box-shadow: 0 2px 12px var(--accent-glow);
+  }
+
+  .lang-toggle { display: flex; gap: 6px; }
+  .lang-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .lang-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  /* ── Panels ── */
+  #user-panel, #planner-panel { display: none; }
+  #user-panel.active, #planner-panel.active { display: block; }
+
+  /* ══ USER MODE ══ */
+  .user-container {
+    max-width: 660px;
+    margin: 0 auto;
+    padding: 48px 24px 60px;
+  }
+
+  .hero-banner {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .hero-banner h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-banner p {
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .emergency-notice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(239,68,68,0.06);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-left: 3px solid var(--emergency);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #fca5a5;
+    margin-bottom: 28px;
+    backdrop-filter: blur(8px);
+  }
+
+  .emergency-toggle {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 5px;
+    gap: 4px;
+    margin-bottom: 28px;
+  }
+  .etype-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 9px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  .etype-btn.emergency.active {
+    background: rgba(239,68,68,0.15);
+    color: var(--emergency);
+    box-shadow: 0 1px 8px rgba(239,68,68,0.2);
+  }
+  .etype-btn.non-emergency.active {
+    background: rgba(34,197,94,0.12);
+    color: var(--success);
+    box-shadow: 0 1px 8px rgba(34,197,94,0.15);
+  }
+
+  .voice-area {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 40px 32px 32px;
+    text-align: center;
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .voice-area::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: var(--gradient);
+    opacity: 0.4;
+  }
+
+  .mic-btn {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 36px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    position: relative;
+  }
+  .mic-btn::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+  }
+  .mic-btn:hover {
+    transform: scale(1.05);
+    border-color: var(--accent);
+    box-shadow: 0 0 24px var(--accent-glow);
+  }
+  .mic-btn.listening {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: transparent;
+    animation: micPulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 32px rgba(239,68,68,0.5);
+  }
+  .mic-btn.non-emergency.listening {
+    background: var(--gradient);
+    box-shadow: 0 0 32px var(--accent-glow);
+  }
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); transform: scale(1); }
+    50% { box-shadow: 0 0 0 16px rgba(239,68,68,0); transform: scale(1.04); }
+  }
+
+  .status-text {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    min-height: 20px;
+  }
+
+  .question-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 15px;
+    width: 100%;
+    resize: none;
+    color: var(--text);
+    font-family: inherit;
+    line-height: 1.5;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .question-box:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .question-box::placeholder { color: var(--muted); }
+
+  .ask-btn {
+    margin-top: 14px;
+    padding: 14px 28px;
+    background: var(--gradient);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px var(--accent-glow);
+    letter-spacing: -0.1px;
+  }
+  .ask-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px var(--accent-glow); }
+  .ask-btn:active { transform: translateY(0); }
+  .ask-btn.emergency {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 16px rgba(239,68,68,0.3);
+  }
+  .ask-btn.emergency:hover { box-shadow: 0 6px 24px rgba(239,68,68,0.4); }
+  .ask-btn:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .answer-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    margin-bottom: 16px;
+    animation: fadeInUp 0.3s ease;
+    backdrop-filter: blur(8px);
+  }
+  .answer-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .answer-text { font-size: 15px; line-height: 1.65; white-space: pre-wrap; }
+
+  .new-convo-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .new-convo-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ══ PLANNER MODE ══ */
+  .planner-layout { display: grid; grid-template-columns: 1fr; height: calc(100vh - var(--navbar-h)); }
+
+  /* Central India map layout */
+  .map-main-wrap { position: relative; flex: 1; display: flex; flex-direction: column; }
+  #india-map { flex: 1; width: 100%; height: 100%; z-index: 0; }
+
+  .map-hint {
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,20,32,0.92);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: var(--muted);
+    pointer-events: none;
+    z-index: 10;
+    white-space: nowrap;
+    backdrop-filter: blur(12px);
+    font-weight: 500;
+  }
+
+  .map-breadcrumb {
+    position: absolute; top: 16px; left: 16px; z-index: 10;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .bc-btn {
+    background: rgba(15,20,32,0.92);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    backdrop-filter: blur(12px);
+  }
+  .bc-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
+  .bc-sep { color: var(--muted); font-size: 13px; }
+
+  /* Slide-in data panel */
+  .data-panel {
+    position: absolute; top: 0; right: 0; height: 100%; width: 420px;
+    background: rgba(15,20,32,0.96);
+    border-left: 1px solid var(--border);
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+  }
+  .data-panel.open { transform: translateX(0); }
+
+  .data-panel-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    background: rgba(22,28,45,0.8);
+    position: relative;
+  }
+  .data-panel-header::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--gradient);
+    opacity: 0.6;
+  }
+  .data-panel-header h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .data-panel-header small { font-size: 12px; color: var(--muted); margin-top: 2px; display: block; }
+
+  .panel-close {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .panel-close:hover { color: var(--text); border-color: var(--muted); }
+
+  .data-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* ── Map tooltip ── */
+  .map-tooltip {
+    background: rgba(15,20,32,0.96) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-family: Inter, system-ui !important;
+    padding: 5px 12px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+    font-weight: 500 !important;
+  }
+  .map-tooltip::before { display: none !important; }
+
+  /* ── Stat tiles ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-tile:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .stat-tile::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--gradient);
+  }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+  .stat-unit { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .stat-tile.warn .stat-value { color: var(--warn); }
+  .stat-tile.danger .stat-value { color: var(--emergency); }
+  .stat-tile.good .stat-value { color: var(--success); }
+
+  /* Section cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.25); }
+  .card h2 { font-size: 14px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.2px; color: var(--text); }
+
+  /* Bar chart */
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+  .bar-label { width: 140px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+  .bar-track { flex: 1; background: var(--surface2); border-radius: 999px; height: 6px; }
+  .bar-fill { height: 6px; border-radius: 999px; background: var(--gradient); transition: width 0.6s ease; }
+  .bar-val { width: 50px; text-align: right; color: var(--text); font-weight: 600; font-size: 13px; }
+
+  /* Equipment chips */
+  .chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .chip.has {
+    background: rgba(91,141,239,0.1);
+    border-color: rgba(91,141,239,0.3);
+    color: var(--accent);
+  }
+  .chip.none { opacity: 0.35; }
+
+  /* Facility table */
+  .ftable { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ftable th {
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ftable td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; }
+  .ftable tr:hover td { background: var(--surface2); }
+  .quality-badge {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .q-High { background: rgba(34,197,94,0.12); color: var(--success); }
+  .q-Medium { background: rgba(245,158,11,0.12); color: var(--warn); }
+  .q-Low { background: rgba(239,68,68,0.12); color: var(--emergency); }
+
+  /* Progress rings */
+  .ring-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
+  .ring-item { text-align: center; }
+  .ring-label { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.3; }
+  svg.ring { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 6; }
+  .ring-arc { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dasharray 0.6s; }
+  .ring-pct { font-size: 13px; font-weight: 700; fill: var(--text); dominant-baseline: middle; text-anchor: middle; }
+
+  /* Distances */
+  .dist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  .dist-item {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+  }
+  .dist-icon { font-size: 18px; }
+  .dist-info { flex: 1; min-width: 0; }
+  .dist-name { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+  .dist-val { font-size: 15px; font-weight: 700; margin-top: 2px; }
+  .dist-val.close { color: var(--success); }
+  .dist-val.mid { color: var(--warn); }
+  .dist-val.far { color: var(--emergency); }
+
+  /* Map */
+  #facility-map { height: 420px; border-radius: 12px; z-index: 0; }
+  .map-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .map-legend-item { display: flex; align-items: center; gap: 5px; }
+  .map-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* Loading */
+  .loading { text-align: center; padding: 60px; color: var(--muted); }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid rgba(255,255,255,0.08);
+    border-top: 2px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .placeholder { color: var(--muted); text-align: center; padding: 60px 20px; font-size: 14px; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .planner-layout { grid-template-columns: 1fr; }
+    .data-panel { width: 100%; }
+    .mode-btn { padding: 8px 14px; font-size: 13px; }
+  }
+
+  /* ═══ anhle additions (Find Facility sidebar, intake, cards, referral, tracker, planner state view) ═══ */
+  #user-panel, #planner-panel, #tracker-panel { display: none; }
+  #user-panel.active, #planner-panel.active, #tracker-panel.active { display: block; }
+
+  /* ── App shell: left navigation + main column (chat-app layout) ── */
+  body { overflow: hidden; }
+  .shell { display: flex; height: 100vh; }
+  .nav { width: 260px; flex-shrink: 0; background: #0b0d13; border-right: 1px solid var(--border);
+         display: flex; flex-direction: column; padding: 14px 10px; gap: 2px; overflow-y: auto; }
+  .nav-brand { font-size: 17px; font-weight: 700; padding: 6px 10px 14px; color: var(--text); }
+  .nav-brand span { color: var(--accent); }
+  .nav-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px;
+              border: none; border-radius: 8px; background: none; color: var(--text); font: inherit;
+              font-size: 14px; cursor: pointer; }
+  .nav-item:hover { background: var(--surface2); }
+  .nav-item.active { background: var(--surface2); }
+  .nav-item .kbd { margin-left: auto; color: var(--muted); font-size: 11px; }
+  .nav-section { color: var(--muted); font-size: 12px; font-weight: 600; padding: 18px 10px 6px; }
+  .chat-item { display: flex; align-items: center; border-radius: 8px; }
+  .chat-item:hover, .chat-item.active { background: var(--surface2); }
+  .chat-item button.open { flex: 1; min-width: 0; text-align: left; background: none; border: none; color: var(--text);
+              font: inherit; font-size: 13.5px; padding: 8px 10px; cursor: pointer;
+              white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-item .del { visibility: hidden; background: none; border: none; color: var(--muted); cursor: pointer;
+              padding: 4px 8px; font-size: 14px; }
+  .chat-item:hover .del { visibility: visible; }
+  .chat-item .dot { color: var(--success); font-size: 10px; padding-left: 8px; }
+  .nav-empty { color: var(--muted); font-size: 13px; padding: 4px 10px; }
+  .main { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; }
+  .nav-toggle { display: none; background: none; border: 1px solid var(--border); color: var(--text);
+                border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 16px; }
+
+  /* ── Search overlay ── */
+  #search-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 50;
+                    align-items: flex-start; justify-content: center; padding-top: 12vh; }
+  #search-overlay.open { display: flex; }
+  .search-box { width: min(620px, 92vw); background: var(--surface); border: 1px solid var(--border);
+                border-radius: 14px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .search-box input { width: 100%; padding: 16px 18px; background: none; border: none;
+                      border-bottom: 1px solid var(--border); color: var(--text); font: inherit; font-size: 16px; outline: none; }
+  #search-results { max-height: 55vh; overflow-y: auto; padding: 6px; }
+  .search-hit { display: block; width: 100%; text-align: left; background: none; border: none; color: var(--text);
+                font: inherit; padding: 10px 12px; border-radius: 8px; cursor: pointer; }
+  .search-hit:hover, .search-hit.sel { background: var(--surface2); }
+  .search-hit .t { font-size: 14px; font-weight: 600; }
+  .search-hit .s { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .search-hit mark { background: rgba(79,142,247,.35); color: var(--text); border-radius: 3px; padding: 0 2px; }
+  .search-none { color: var(--muted); font-size: 14px; padding: 14px; }
+
+  /* ── Patient tracker ── */
+  .tracker-wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .tracker-wrap h1 { font-size: 22px; margin-bottom: 4px; }
+  .tracker-head { display: flex; gap: 12px; align-items: center; margin: 16px 0; flex-wrap: wrap; }
+  .tracker-head input { flex: 1; min-width: 220px; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+                        border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 14px; }
+  .tracker-count { color: var(--muted); font-size: 13px; }
+  .ttable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .ttable th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; padding: 8px 10px;
+               border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .ttable td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .ttable tr.case-row { cursor: pointer; }
+  .ttable tr.case-row:hover td { background: var(--surface); }
+  .ttable tr.desc-row td { background: var(--surface); color: var(--muted); white-space: pre-wrap; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); }
+  .pill.em { border-color: var(--emergency); color: var(--emergency); }
+  .linkbtn { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; font-size: 13px; padding: 0; }
+
+  .shell.no-nav .nav, .shell.no-nav .nav-toggle { display: none !important; }
+  .mode-bar { justify-content: flex-start; }
+  .mode-bar .lang-toggle { margin-left: auto; }
+  .bar-brand { display: none; font-size: 17px; font-weight: 700; color: var(--text); }
+  .bar-brand span { color: var(--accent); }
+  .shell.no-nav .bar-brand { display: block; width: 261px; margin-left: -4px; flex-shrink: 0; }
+  @media (max-width: 860px) { .shell.no-nav .bar-brand { width: auto; margin-right: 16px; } }
+
+  /* ── Referral flow ── */
+  .ref-panel { background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius);
+               padding: 22px; margin-bottom: 20px; }
+  .ref-panel h2 { font-size: 20px; margin: 4px 0 6px; }
+  .ref-panel .meta, .ref-panel .lead { color: var(--muted); font-size: 14px; margin-bottom: 12px; line-height: 1.6; }
+  .ref-step { color: var(--accent); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .ref-q { font-size: 17px; font-weight: 600; margin: 18px 0 10px; }
+  .ref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0 12px; }
+  .ref-grid.two { grid-template-columns: 1fr 1fr; }
+  .ref-btn { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 58px;
+             padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2);
+             color: var(--text); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .ref-btn:hover { border-color: var(--accent); }
+  .ref-btn.ok { background: var(--success); color: #06210f; border-color: var(--success); }
+  .ref-btn.bad { border-color: var(--emergency); color: #fca5a5; }
+  .ref-btn.sel { border: 2px solid var(--accent); background: rgba(79,142,247,.15); }
+  .ref-btn.wide { width: 100%; margin-top: 14px; }
+  .ref-btn:disabled { opacity: .5; cursor: wait; }
+  .ref-panel label { display: block; font-size: 14px; font-weight: 600; margin: 14px 0 6px; }
+  .ref-panel input, .ref-panel textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+             border-radius: 8px; padding: 12px; font: inherit; font-size: 16px; color-scheme: dark; }
+  .ref-error { color: var(--warn); font-size: 14px; min-height: 18px; margin-top: 8px; }
+  .call-btn.big { display: block; text-align: center; font-size: 17px; padding: 14px; margin-top: 6px; }
+  .choose-btn { margin-left: 8px; background: var(--accent); color: white; border: none; cursor: pointer; font: inherit;
+                font-weight: 600; font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .chip { border: 1px solid var(--border); background: var(--surface2); color: var(--text); border-radius: 999px;
+          padding: 8px 14px; font: inherit; font-size: 14px; cursor: pointer; }
+  .chip.sel { border-color: var(--accent); color: var(--accent); }
+  .demo-banner { background: rgba(245,158,11,.12); border: 1px solid var(--warn); color: var(--warn); border-radius: 8px;
+                 padding: 10px 12px; font-size: 14px; margin: 10px 0; }
+  .draft-tag { display: inline-block; font-size: 12px; color: var(--warn); border: 1px dashed var(--warn);
+               border-radius: 6px; padding: 3px 8px; margin: 8px 0; }
+  .checklist { list-style: none; margin: 6px 0 14px; }
+  .checklist li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .checklist li span { color: var(--muted); }
+  .checklist li.st-done strong { text-decoration: line-through; color: var(--muted); }
+  .checklist li.st-blocked strong { color: var(--warn); }
+  .step-btn { font-size: 22px; background: none; border: none; color: var(--text); cursor: pointer; min-width: 32px; }
+  .step-blk { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--warn); border-radius: 8px;
+              padding: 6px 10px; cursor: pointer; font: inherit; font-size: 13px; white-space: nowrap; }
+  .ref-panel.ref-inline { background: none; border: none; border-top: 1px dashed var(--border); border-radius: 0;
+                         padding: 14px 0 0; margin: 14px 0 0; }
+  /* Steps inside a hospital card: sized to match the card's own text (15–17px), not bigger */
+  .ref-inline .ref-q { font-size: 14px; font-weight: 600; margin: 12px 0 8px; }
+  .ref-inline h2 { font-size: 15px; margin: 2px 0 4px; }
+  .ref-inline .lead, .ref-inline .meta { font-size: 13px; margin-bottom: 8px; }
+  .ref-inline .ref-grid { gap: 8px; margin: 6px 0 8px; }
+  .ref-inline .ref-btn { min-height: 38px; padding: 7px 10px; font-size: 14px; border-radius: 8px; }
+  .ref-inline .ref-btn.wide { margin-top: 10px; }
+  .ref-inline .call-btn { font-size: 14px; padding: 8px 16px; }
+  .ref-inline label { font-size: 13px; margin: 10px 0 4px; }
+  .ref-inline input, .ref-inline textarea { font-size: 14px; padding: 8px 10px; }
+  .ref-inline .chip { font-size: 12.5px; padding: 5px 10px; }
+  .ref-inline .demo-banner { font-size: 12.5px; padding: 7px 10px; }
+  .ref-inline .checklist li { font-size: 13px; padding: 7px 0; }
+  .ref-inline .step-btn { font-size: 17px; }
+  .ref-inline .ref-error { font-size: 13px; min-height: 14px; margin-top: 4px; }
+  .ref-inline .linkbtn { font-size: 13px; }
+  .ref-panel .intake-row > input, .ref-panel .intake-row > textarea { flex: 1; width: auto; min-width: 0; }
+  .ref-inline .intake-row textarea { font-size: 14px; padding: 8px 10px; }
+  .ref-inline .field-mic { width: 36px; height: 36px; font-size: 15px; }
+  .phone-line { font-size: 15px; margin: 2px 0 4px; } .phone-line.muted { color: var(--muted); }
+  .contact-btn { border: none; cursor: pointer; font: inherit; font-weight: 600; font-size: 15px; padding: 10px 22px; }
+  .contact-btn:disabled, .contact-btn.disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
+  .ref-grid.three { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 560px) { .ref-grid.three { grid-template-columns: 1fr; } }
+  .tracker-wrap .tr-h { font-size: 17px; margin: 22px 0 10px; }
+  .appt-row { display: flex; gap: 14px; align-items: center; padding: 12px 14px; background: var(--surface);
+              border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .appt-when { font-weight: 700; min-width: 170px; }
+  .appt-who { flex: 1; min-width: 200px; } .appt-who span { display: block; color: var(--muted); font-size: 13px; }
+  .ref-btn.small { min-height: 0; padding: 8px 12px; font-size: 14px; }
+  .sent { color: var(--success); font-size: 13px; }
+  .ref-case { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; padding: 0 14px; }
+  .ref-case summary { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; cursor: pointer; list-style: none; }
+  .ref-case summary::-webkit-details-marker { display: none; }
+  .ref-case .sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .ref-case .right { text-align: right; }
+  .pill.ok { border-color: var(--success); color: var(--success); }
+  .cal-wrap { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 860px) { .cal-wrap { grid-template-columns: 1fr; } }
+  .cal, .day-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cal-month { font-weight: 700; font-size: 15px; }
+  .cal-nav { background: none; border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 32px; height: 32px;
+             font-size: 18px; cursor: pointer; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { text-align: center; color: var(--muted); font-size: 11px; padding: 4px 0; }
+  .cal-cell { position: relative; aspect-ratio: 1; border-radius: 8px; border: 1px solid transparent; background: none;
+              color: var(--text); font: inherit; font-size: 13px; cursor: pointer; display: flex; flex-direction: column;
+              align-items: center; justify-content: center; gap: 2px; }
+  .cal-cell.empty { cursor: default; }
+  .cal-cell:not(.empty):hover { background: var(--surface2); }
+  .cal-cell.today span { color: var(--accent); font-weight: 700; }
+  .cal-cell.has i { font-style: normal; font-size: 10px; background: var(--accent); color: white; border-radius: 999px;
+                    min-width: 16px; padding: 0 4px; line-height: 16px; }
+  .cal-cell.sel { border-color: var(--accent); background: rgba(79,142,247,.15); }
+  .day-panel { min-height: 320px; }
+  .day-title { font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+  .day-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--border); }
+  .day-time { font-weight: 600; font-size: 13px; min-width: 72px; padding-top: 1px; }
+  .day-info { flex: 1; min-width: 0; }
+  .day-info .l1 { font-weight: 600; font-size: 14px; }
+  .day-info .l2 { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .day-info .l3 { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .day-empty { color: var(--muted); font-size: 14px; padding: 24px 0; text-align: center; }
+  .sent-tag { color: var(--success); font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .ref-btn.small:disabled { opacity: .4; cursor: not-allowed; }
+  .pat-table td { font-size: 13.5px; } .pat-table td:first-child { white-space: nowrap; } .pat-table .tel { color: var(--text); text-decoration: none; }
+  .tr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .add-btn { white-space: nowrap; }
+  .chat-link { color: var(--accent); text-decoration: none; } .muted { color: var(--muted); } .small { font-size: 12.5px; }
+  #ref-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 60;
+               align-items: flex-start; justify-content: center; padding: 6vh 16px; overflow-y: auto; }
+  #ref-modal.open { display: flex; }
+  #ref-modal .modal-box { width: min(520px, 100%); margin: 0; }
+  #ref-modal select { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+                      border-radius: 8px; padding: 12px; font: inherit; font-size: 15px; }
+  .pat-table th, .pat-table td { padding: 9px 8px; }
+  .pat-table { min-width: 1250px; }
+  .pat-table th { white-space: nowrap; }
+  .pat-table td.clip > div { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+                             max-width: 230px; min-width: 120px; }
+  .pat-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--surface);
+             border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
+  .pat-row .sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .pat-side { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .pat-side .phone { color: var(--text); text-decoration: none; white-space: nowrap; }
+  .pill.bad { border-color: var(--emergency); color: var(--emergency); }
+  .h-note { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+  .dist-worst { font-size: 11px; color: var(--muted); }
+  .cmp-bad { color: var(--warn); } .cmp-good { color: var(--success); }
+  .src-note { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.5; }
+  .dist-table tbody tr { cursor: pointer; } .dist-table tbody tr:hover td { background: var(--surface2); }
+  .dist-table .dist-val { font-size: 13px; }
+  .refusal-warn { color: var(--warn); font-size: 13px; margin: -4px 0 10px; }
+
+  @media (max-width: 860px) {
+    .nav { position: fixed; z-index: 40; height: 100vh; transform: translateX(-100%); transition: transform .2s; }
+    .nav.open { transform: none; }
+    .nav-toggle { display: inline-block; }
+  }
+
+  /* ── Welcome intake ── */
+  .intake { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 24px; margin-bottom: 20px; }
+  .intake h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .intake h1 span { color: var(--accent); }
+  .intake .lead { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .intake label { display: block; font-size: 15px; font-weight: 600; margin: 14px 0 8px; }
+  .intake-row { display: flex; gap: 8px; align-items: flex-start; }
+  .intake-row textarea { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; font: inherit; font-size: 15px; resize: vertical; }
+  .intake-row textarea:focus { outline: none; border-color: var(--accent); }
+  .field-mic { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border);
+            background: var(--surface2); color: var(--text); font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .field-mic.listening { background: var(--emergency); border-color: var(--emergency); }
+  .intake-error { color: var(--warn); font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .intake .ask-btn { margin-top: 12px; }
+  #followup-area { display: none; }
+  .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+  .btn-row .ask-btn { margin-top: 0; flex: 1; }
+  .ask-btn.confirm { background: var(--success); color: #06210f; }
+  .ask-btn.confirm:hover { background: #16a34a; }
+  .case-form { background: var(--surface); border: 1px solid var(--success); border-radius: var(--radius);
+               padding: 22px; margin-bottom: 20px; }
+  .case-form h2 { font-size: 18px; margin-bottom: 4px; }
+  .case-form .lead { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+  .case-form label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 6px; }
+  .case-form input, .case-form select, .case-form textarea { color-scheme: dark;
+    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 15px; }
+  .case-form .intake-row input, .case-form .intake-row textarea { flex: 1; width: auto; }
+  .case-saved { color: var(--success); font-weight: 600; }
+
+  /* ── Hospital result cards ── */
+  .results { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+             padding: 22px; margin-bottom: 20px; }
+  .results .asked { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+  .results h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .results .sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; line-height: 1.5; }
+  .hcard { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+           padding: 16px 18px; margin-bottom: 12px; }
+  .hcard h3 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .hcard .meta { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+  .hcard ul { list-style: none; margin-bottom: 14px; }
+  .hcard li { font-size: 14px; padding: 3px 0 3px 18px; position: relative; }
+  .hcard li::before { content: "✓"; position: absolute; left: 0; color: var(--success); }
+  .hcard li.missing { color: var(--muted); }
+  .hcard li.missing::before { content: "–"; color: var(--muted); }
+  .call-btn { display: inline-block; padding: 10px 18px; border-radius: 8px; background: var(--success);
+              color: #06210f; font-weight: 600; font-size: 14px; text-decoration: none; }
+  .call-btn.search { background: none; border: 1px solid var(--border); color: var(--text); }
+  .results details { margin-top: 10px; color: var(--muted); font-size: 13px; }
+  .results details summary { cursor: pointer; }
+  .results details div { margin-top: 8px; white-space: pre-wrap; line-height: 1.5; }
+
+  /* ═══ merged planner (map + state view + full dashboard) ═══ */
+  /* Planner (merged): full dashboard opens over the map; pick lists in the side panel */
+  .planner-wrap { display: flex; height: calc(100vh - var(--bar-h, 57px)); position: relative; overflow: hidden; }
+  #dashboard-main { position: absolute; inset: 0; z-index: 30; background: var(--bg); display: none; }
+  #dashboard-main.open { display: flex; }
+  .full-btn { align-self: flex-start; }
+  .pick-list { display: flex; flex-direction: column; gap: 6px; max-height: 360px; overflow-y: auto; }
+  .pick-btn { text-align: left; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border);
+              border-radius: 8px; color: var(--text); cursor: pointer; font: inherit; font-size: 13px; }
+  .pick-btn:hover { border-color: var(--accent); }
+  .data-panel .stat-grid { grid-template-columns: 1fr 1fr; }
+  /* aitongl restyle applied to merged pieces */
+  .pick-btn { padding: 12px 16px; border-radius: 10px; font-weight: 500; font-family: inherit; transition: all 0.15s; }
+  .pick-btn:hover { background: rgba(91,141,239,0.08); }
+  .dist-badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .dist-badge.close { background: rgba(34,197,94,0.12); color: #22c55e; }
+  .dist-badge.mid { background: rgba(245,158,11,0.12); color: #f59e0b; }
+  .dist-badge.far { background: rgba(239,68,68,0.12); color: #ef4444; }
+  .dist-badge.none { background: var(--surface2); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="nav" id="nav">
+  <div class="nav-brand">🏥 Hospital<span>Voice</span></div>
+  <button class="nav-item" onclick="newChat()"><span data-i18n="nav_new">✏️ New chat</span></button>
+  <button class="nav-item" onclick="openSearch()"><span data-i18n="nav_search">🔍 Search</span> <span class="kbd">Ctrl K</span></button>
+  <button class="nav-item" id="nav-tracker" onclick="setMode('tracker')"><span data-i18n="nav_tracker">📋 Patient Tracker</span></button>
+  <div class="nav-section" data-i18n="nav_chats">Chats</div>
+  <div id="chat-list"></div>
+</aside>
+<div class="main" id="main">
+
+<!-- Mode bar -->
+<div class="mode-bar">
+  <button class="nav-toggle" onclick="document.getElementById('nav').classList.toggle('open')" title="Menu">☰</button>
+  <div class="bar-brand">🏥 Hospital<span>Voice</span></div>
+  <div class="mode-toggle">
+    <button class="mode-btn active" onclick="setMode('user')" id="btn-user" data-i18n="mode_user">🎙 Find Facility</button>
+    <button class="mode-btn" onclick="setMode('planner')" id="btn-planner" data-i18n="mode_planner">📊 Planner Dashboard</button>
+  </div>
+  <div class="lang-toggle" id="lang-bar">
+    <button class="lang-btn active" data-lang="en" onclick="setLang('en')" title="English">EN</button>
+    <button class="lang-btn" data-lang="hi" onclick="setLang('hi')" title="हिन्दी">हिं</button>
+    <button class="lang-btn" data-lang="ta" onclick="setLang('ta')" title="தமிழ்">தமி</button>
+    <button class="lang-btn" data-lang="te" onclick="setLang('te')" title="తెలుగు">తె</button>
+  </div>
+</div>
+
+<!-- ══ USER PANEL ══ -->
+<div id="user-panel" class="active">
+  <div class="user-container">
+    <div class="hero-banner">
+      <h1 data-i18n="hero_title">Find Healthcare Near You</h1>
+      <p data-i18n="hero_sub">Ask in your language — voice or text — and get matched to the right facility</p>
+    </div>
+
+    <div class="emergency-notice" data-i18n-html="notice">🚨 Emergency? Call <strong>112</strong> or <strong>108</strong> immediately.</div>
+
+    <div class="emergency-toggle">
+      <button class="etype-btn emergency active" onclick="setEmergency(true)" data-i18n="btn_emergency">🚑 Emergency</button>
+      <button class="etype-btn non-emergency" onclick="setEmergency(false)" data-i18n="btn_nonemergency">🏥 Non-Emergency</button>
+    </div>
+
+    <div class="intake" id="intake">
+      <h1 data-i18n-html="welcome">Welcome to <span>HospitalVoice</span></h1>
+      <div class="lead" data-i18n="lead">To find hospitals for your patient, answer:</div>
+
+      <label for="intake-address" data-i18n="q1">1. What is your address?</label>
+      <div class="intake-row">
+        <textarea id="intake-address" rows="2" data-i18n-ph="ph_address" placeholder="e.g. Civil Lines, Barabanki, Uttar Pradesh 225001"></textarea>
+        <button class="field-mic" title="Speak your address" onclick="startListening('intake-address', this)">🎤</button>
+      </div>
+
+      <label for="intake-need" data-i18n="q2">2. What does the patient need?</label>
+      <div class="intake-row">
+        <textarea id="intake-need" rows="2" placeholder="e.g. Woman in labour who needs an emergency C-section"></textarea>
+        <button class="field-mic" title="Speak the patient's need" onclick="startListening('intake-need', this)">🎤</button>
+      </div>
+
+      <div id="freq-block" style="display:none">
+        <label for="intake-freq" data-i18n="q3">3. How often does the patient need treatment?</label>
+        <div class="intake-row">
+          <textarea id="intake-freq" rows="2" data-i18n-ph="ph_freq" placeholder="e.g. Dialysis 3 times a week, ongoing"></textarea>
+          <button class="field-mic" title="Speak how often treatment is needed" onclick="startListening('intake-freq', this)">🎤</button>
+        </div>
+      </div>
+
+      <div class="intake-error" id="intake-error"></div>
+      <button class="ask-btn emergency" id="intake-btn" onclick="submitIntake()">🚑 Find Hospitals</button>
+    </div>
+
+    <div id="answers"></div>
+
+    <div class="voice-area" id="followup-area">
+      <button class="mic-btn" id="mic-btn" onclick="toggleListening()">🎤</button>
+      <div class="status-text" id="status-text">Tap mic and ask about facilities near you</div>
+      <textarea class="question-box" id="question-box" rows="2" data-i18n-ph="ph_followup"
+        placeholder="Ask a follow-up, e.g. Which of these has a blood bank?"></textarea>
+      <div class="btn-row">
+        <button class="ask-btn emergency" id="ask-btn" onclick="submitQuestion()">Ask</button>
+        <button class="ask-btn confirm" id="confirm-btn" onclick="confirmSent()" data-i18n="confirm">✅ Confirm Sent Patient</button>
+      </div>
+    </div>
+
+    <button class="new-convo-btn" onclick="newConversation()" style="display:none" id="new-convo-btn">+ New conversation</button>
+  </div>
+</div>
+
+<!-- ══ PLANNER PANEL ══ -->
+<div id="planner-panel">
+  <div class="planner-wrap">
+
+    <!-- Central India map -->
+    <div class="map-main-wrap" style="flex:1;position:relative;display:flex;flex-direction:column">
+      <!-- Breadcrumb nav -->
+      <div class="map-breadcrumb" id="map-breadcrumb" style="display:none">
+        <button class="bc-btn" onclick="mapGoHome()" data-i18n="map_india_btn">🗺 India</button>
+        <span class="bc-sep" id="bc-state-sep" style="display:none">›</span>
+        <button class="bc-btn" id="bc-state-btn" onclick="mapGoState()" style="display:none"></button>
+        <span class="bc-sep" id="bc-district-sep" style="display:none">›</span>
+        <span style="color:var(--text);font-size:13px;padding:6px 4px;font-weight:600" id="bc-district-label"></span>
+      </div>
+
+      <div id="india-map" style="flex:1;width:100%;min-height:0"></div>
+
+      <div class="map-hint" id="map-hint" data-key="map_hint_state">🖱 Click a state to explore</div>
+    </div>
+
+    <!-- Full dashboard (state or district), opened from the side panel -->
+    <div class="dashboard-main" id="dashboard-main"></div>
+
+    <!-- Slide-in data panel -->
+    <div class="data-panel" id="data-panel">
+      <div class="data-panel-header">
+        <div>
+          <h2 id="panel-title">District</h2>
+          <small id="panel-subtitle"></small>
+        </div>
+        <button class="panel-close" onclick="closePanel()">✕</button>
+      </div>
+      <div class="data-panel-body" id="data-panel-body">
+        <div class="loading"><div class="spinner"></div>Loading…</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ PATIENT TRACKER ══ -->
+<div id="tracker-panel">
+  <div class="tracker-wrap">
+    <div style="display:flex;align-items:center;gap:12px">
+      <h1 style="flex:1" data-i18n="tr_title">📋 Referral Tracker</h1>
+      <button class="new-convo-btn" onclick="refLoadTracker()" data-i18n="tr_refresh">↻ Refresh</button>
+    </div>
+    <div id="ref-tracker"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ══ SEARCH ══ -->
+<div id="search-overlay" onclick="if (event.target === this) closeSearch()">
+  <div class="search-box">
+    <input id="search-input" data-i18n-ph="search_ph" placeholder="Search chats: hospital, patient need, place…" autocomplete="off"
+           oninput="runSearch()" onkeydown="searchKey(event)">
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<script src="static/i18n.js"></script>
+<script src="static/referral.js"></script>
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let isEmergency = true;
+let isListening = false;
+let recognition = null;
+let conversationId = null;
+let currentLang = 'en';
+let speechTarget = 'question-box';
+let caseCtx = null;   // intake answers + suggested hospitals for the current conversation
+let speechBtn = null;
+
+// ── Mode switching ─────────────────────────────────────────────────────────
+function setMode(mode) {
+  document.getElementById('nav').classList.remove('open');
+  document.getElementById('tracker-panel').classList.toggle('active', mode === 'tracker');
+  document.getElementById('nav-tracker').classList.toggle('active', mode === 'tracker');
+  if (mode === 'tracker') refLoadTracker();
+  document.getElementById('user-panel').classList.toggle('active', mode === 'user');
+  document.getElementById('planner-panel').classList.toggle('active', mode === 'planner');
+  document.getElementById('btn-user').classList.toggle('active', mode === 'user');
+  document.getElementById('btn-planner').classList.toggle('active', mode === 'planner');
+  document.querySelector('.shell').classList.toggle('no-nav', mode === 'planner');
+  if (mode === 'planner') {
+    const bar = document.querySelector('.mode-bar');
+    if (bar) document.documentElement.style.setProperty('--bar-h', bar.offsetHeight + 'px');
+    if (!plannerLoaded) initPlanner();
+    else if (_indiaMap) setTimeout(() => _indiaMap.invalidateSize(), 50);
+  }
+}
+
+function t(key, vars) {
+  let str = (I18N[currentLang] || {})[key] ?? I18N.en[key] ?? key;
+  for (const [k, v] of Object.entries(vars || {})) str = str.split('{' + k + '}').join(v);
+  return str;
+}
+
+// Translate a card bullet (service labels come from the data in English).
+function trService(b) {
+  if (currentLang === 'en' || !b) return b;
+  const pat = BULLET_PATTERNS[currentLang], map = SERVICE_I18N[currentLang] || {};
+  let m;
+  if ((m = b.match(/^(\d+) beds$/))) return pat.beds.replace('{n}', m[1]);
+  if (b === 'Bed count not listed') return pat.bedsMissing;
+  if ((m = b.match(/^(.*) information not listed$/))) return pat.missing.replace('{x}', trService(m[1]));
+  return map[b] || b;
+}
+
+// Ask Genie to answer in the chosen language (and accept questions written in it).
+function langHint() {
+  const name = LANG_NAMES[currentLang];
+  return name ? ` The user may write in ${name}. Write your text answer in ${name}, but keep hospital names,` +
+                ' phone numbers and column names in English.' : '';
+}
+
+function applyLang() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-html]').forEach(el => el.innerHTML = t(el.dataset.i18nHtml));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+  setEmergency(isEmergency);
+  if (!isListening) document.getElementById('status-text').textContent = t('tap_mic');
+  const nb = document.getElementById('new-convo-btn');
+  nb.textContent = t(nb.dataset.key || 'new_convo');
+  renderChatList();
+  if (document.getElementById('tracker-panel').classList.contains('active')) refRenderTracker();
+  if (document.getElementById('planner-panel').classList.contains('active') && typeof plannerRedraw === 'function') plannerRedraw();
+  // re-draw the open chat in the new language (not while a form is being filled in);
+  // an open referral step is redrawn in place so nothing typed is lost
+  const refOpen = typeof refRedrawActive === 'function' && refRedrawActive();
+  if (!refOpen && currentChatId && document.getElementById('user-panel').classList.contains('active')
+      && !document.getElementById('case-form')) openChat(currentChatId);
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  try { localStorage.setItem('hospitalvoice_lang', lang); } catch (e) {}
+  if (recognition) recognition.lang = langCode(lang);
+  applyLang();
+}
+
+function langCode(l) {
+  return { en: 'en-IN', hi: 'hi-IN', ta: 'ta-IN', te: 'te-IN' }[l] || 'en-IN';
+}
+
+// ── User mode ──────────────────────────────────────────────────────────────
+function setEmergency(val) {
+  isEmergency = val;
+  document.querySelectorAll('.etype-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(val ? '.etype-btn.emergency' : '.etype-btn.non-emergency').classList.add('active');
+  const micBtn = document.getElementById('mic-btn');
+  micBtn.classList.toggle('non-emergency', !val);
+  const askBtn = document.getElementById('ask-btn');
+  askBtn.className = 'ask-btn' + (val ? ' emergency' : '');
+  askBtn.textContent = t(val ? 'ask_em' : 'ask_non');
+  document.getElementById('freq-block').style.display = val ? 'none' : 'block';
+  document.getElementById('intake-need').placeholder = t(val ? 'ph_need_em' : 'ph_need_non');
+  const intakeBtn = document.getElementById('intake-btn');
+  if (!intakeBtn.disabled) {
+    intakeBtn.className = 'ask-btn' + (val ? ' emergency' : '');
+    intakeBtn.textContent = t(val ? 'find_em' : 'find_non');
+  }
+}
+
+function setupSpeech() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  recognition = new SR();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-IN';
+  recognition.onresult = (e) => {
+    let final = '', interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById(speechTarget).value = final || interim;
+    if (final) {
+      const autoSubmit = speechTarget === 'question-box';
+      stopListening();
+      if (autoSubmit) submitQuestion();
+    }
+  };
+  recognition.onend = () => { if (isListening) stopListening(); };
+  recognition.onerror = () => stopListening();
+}
+
+function toggleListening() {
+  if (isListening) stopListening(); else startListening('question-box', document.getElementById('mic-btn'));
+}
+
+function startListening(target, btn) {
+  if (isListening) { stopListening(); return; }
+  speechTarget = target || 'question-box';
+  speechBtn = btn || document.getElementById('mic-btn');
+  if (!recognition) { setupSpeech(); }
+  if (!recognition) { alert(t('no_speech')); return; }
+  isListening = true;
+  speechBtn.classList.add('listening');
+  document.getElementById('status-text').textContent = t('listening');
+  recognition.lang = langCode(currentLang);
+  recognition.start();
+}
+
+function stopListening() {
+  isListening = false;
+  document.querySelectorAll('.listening').forEach(b => b.classList.remove('listening'));
+  speechTarget = 'question-box';
+  document.getElementById('status-text').textContent = t('tap_mic');
+  if (recognition) try { recognition.stop(); } catch(e) {}
+}
+
+async function submitQuestion(override, opts) {
+  opts = opts || { cards: true, compact: true };
+  const q = (typeof override === 'string' ? override : document.getElementById('question-box').value).trim();
+  if (!q) return;
+  const prefix = isEmergency
+    ? 'EMERGENCY: list the nearest capable hospitals first. '
+    : 'NON-EMERGENCY: list the nearest capable hospitals first; prefer higher confidence when distances are similar. ';
+  const question = prefix + q + (opts.compact
+    ? ' If the answer is about specific hospitals, return one row per hospital with columns ' +
+      'unique_id, name, city and distance_km, nearest first. Keep the answer short.' + DISTANCE_HINT +
+      suggestedContext()
+    : '') + langHint();
+
+  const askBtn = document.getElementById('ask-btn');
+  askBtn.disabled = true;
+  askBtn.textContent = t('asking');
+
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, conversation_id: conversationId,
+                             want_cards: !!opts.cards, compact: !!opts.compact,
+                             user_question: q, emergency: isEmergency })
+    });
+    const data = await res.json();
+    conversationId = data.conversation_id;
+    const asCards = !!(opts.cards && data.cards && data.cards.hospitals && data.cards.hospitals.length);
+    if (asCards) renderCards(opts.label || q, data);
+    else renderAnswer(opts.label || q, data, !opts.compact);
+    recordMessage({ kind: asCards ? 'cards' : 'answer', q: opts.label || q, data, isFirst: !opts.compact });
+    document.getElementById('new-convo-btn').style.display = 'block';
+    document.getElementById('question-box').value = '';
+  } catch(e) {
+    renderAnswer(opts.label || q, { error: e.message }, !opts.compact);
+  }
+
+  askBtn.disabled = false;
+  setEmergency(isEmergency); // restore button text
+}
+
+const INSUFFICIENT_MSG = 'Call the suggested hospitals for more information.';
+const NOTHING_FOUND_MSG = 'No matching hospitals were found in the data. Try a nearby city or PIN code, or call 108 for an ambulance.';
+// Genie sometimes writes the haversine formula with misplaced parentheses (ASIN with 2 args),
+// every attempt fails and no hospitals come back. Give it the exact, tested expression.
+const DISTANCE_HINT = ' For distance in km use exactly this expression, where (lat1, lon1) is the patient location ' +
+  'and (lat2, lon2) is the facility: 6371 * 2 * ASIN(SQRT(POWER(SIN(RADIANS(lat2 - lat1) / 2), 2) + ' +
+  'COS(RADIANS(lat1)) * COS(RADIANS(lat2)) * POWER(SIN(RADIANS(lon2 - lon1) / 2), 2))).';
+const INSUFFICIENT_RE = new RegExp([
+  "no answer returned", "^error", "\\bno (hospitals?|facilit(y|ies)|data|records?|information|results?)\\b",
+  "(were|was) not found", "not (available|listed|mentioned|recorded|specified)", "insufficient",
+  "(do|does|did) not (have|contain|include|mention|list|specify)", "unable to", "cannot (determine|find|confirm)",
+  "no (specific )?(evidence|mention|details?)", "isn't available", "not enough"].join("|"), "i");
+
+function isInsufficient(data) {
+  const hasRows = data.table && data.table.rows && data.table.rows.length;
+  if (data.error || (data.status && data.status !== 'COMPLETED')) return true;
+  if (!data.answer || !data.answer.trim()) return true;
+  // only treat "not available" wording as insufficient when there are no rows to back an answer
+  return !hasRows && INSUFFICIENT_RE.test(data.answer);
+}
+
+function renderAnswer(q, data, isFirst) {
+  if (isInsufficient(data)) data = { answer: t(isFirst ? 'nothing' : 'insufficient') };
+  const div = document.createElement('div');
+  div.className = 'answer-card';
+  let html = `<div class="answer-label">${t('you_asked')}</div>
+    <div class="answer-text" style="color:var(--muted);margin-bottom:16px;font-size:14px">${escHtml(q)}</div>
+    <div class="answer-label">${t('answer')}</div>
+    <div class="answer-text">${escHtml(data.answer || t('no_answer_text'))}</div>`;
+  if (data.table && data.table.rows.length) {
+    html += renderTable(data.table);
+  }
+  div.innerHTML = html;
+  const container = document.getElementById('answers');
+  container.appendChild(div);
+  if (!restoring) div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderCards(q, data) {
+  const c = data.cards;
+  const refKey = refRegisterSet(c.hospitals);   // every card gets Contact → in-card steps
+  if (caseCtx) for (const h of c.hospitals)
+    if (!caseCtx.hospitals.includes(h.name)) caseCtx.hospitals.push(h.name);
+  let html = `<div class="asked">${t('you_asked')}: ${escHtml(q)}</div>` +
+    (c.title ? `<h2>🏥 ${escHtml(cardTitle(c))}</h2>` : '') +
+    (c.subtitle ? `<div class="sub">${escHtml(cardSubtitle(c))}</div>` : '');
+  for (const h of c.hospitals) {
+    const meta = [h.km != null ? t('km_away', { km: h.km }) : null, h.address].filter(Boolean).map(escHtml).join(' · ');
+    const items = h.bullets.map(b =>
+      `<li class="${/not listed/i.test(b) ? 'missing' : ''}">${escHtml(trService(b))}</li>`).join('');
+    // One Contact button per card: opens the in-card steps (number shown as text + "What did they say?").
+    const idx = c.hospitals.indexOf(h);
+    const call = refContactButton(refKey, idx);
+    const warn = h.refusals && h.refusals.n
+      ? `<div class="refusal-warn">⚠ ${escHtml(t('card_refused', { n: h.refusals.n,
+          reason: h.refusals.top_reason ? t('reason_' + h.refusals.top_reason) : '' }))}</div>` : '';
+    html += `<div class="hcard" ${refKey ? `id="hc-${refKey}-${idx}"` : ''}><h3>${escHtml(h.name)}</h3>
+      <div class="meta">${meta}</div>${warn}<ul>${items}</ul>${call}</div>`;
+  }
+  html += `<details><summary>${t('details')}</summary><div>${escHtml(data.answer || '')}</div></details>`;
+  const div = document.createElement('div');
+  div.className = 'results';
+  div.innerHTML = html;
+  const container = document.getElementById('answers');
+  container.appendChild(div);
+  if (!restoring) div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cardTitle(c) {
+  const n = c.hospitals.length;
+  const city = c.where !== undefined ? c.where : ((c.title || '').match(/ in (.+)$/) || [])[1];
+  return t(n === 1 ? (city ? 'one_hosp_in' : 'one_hosp_near') : (city ? 'n_hosp_in' : 'n_hosp_near'), { n, city });
+}
+function cardSubtitle(c) {
+  const s = c.primary_label || ((c.subtitle || '').match(/offering (.+?), with/) || [])[1];
+  if (!s) return c.subtitle;
+  const em = c.emergency !== undefined ? c.emergency : /emergency or neonatal/.test(c.subtitle || '');
+  return t(em ? 'sub_em' : 'sub_non', { s: trService(s) });
+}
+
+function renderTable(table) {
+  let html = '<div style="overflow-x:auto;margin-top:16px"><table class="ftable"><thead><tr>';
+  for (const col of table.columns) html += `<th>${escHtml(col)}</th>`;
+  html += '</tr></thead><tbody>';
+  for (const row of table.rows.slice(0, 20)) {
+    html += '<tr>' + row.map(c => `<td>${escHtml(String(c ?? ''))}</td>`).join('') + '</tr>';
+  }
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function submitIntake() {
+  const address = document.getElementById('intake-address').value.trim();
+  const need = document.getElementById('intake-need').value.trim();
+  const freq = isEmergency ? '' : document.getElementById('intake-freq').value.trim();
+  const err = document.getElementById('intake-error');
+  const missing = [];
+  if (!address) missing.push(t('miss_address'));
+  if (!need) missing.push(t('miss_need'));
+  if (!isEmergency && !freq) missing.push(t('miss_freq'));
+  if (missing.length) { err.textContent = t('please_answer') + ' ' + missing.join(', ') + '.'; return; }
+  err.textContent = '';
+  const q = `The patient needs: ${need}. We are at: ${address}. ` +
+            (freq ? `Treatment frequency: ${freq}, so prefer facilities the patient can reach regularly. ` : '') +
+            'Which hospitals near this address can provide this? Return one row per hospital, nearest first, ' +
+            'with columns unique_id, name, city, service, service_label, confidence, distance_km and official_phone. ' +
+            'Say if the evidence is weak.' + DISTANCE_HINT;
+  const label = `${need} · near ${address}` + (freq ? ` · ${freq}` : '');
+  caseCtx = { need, address, freq, emergency: isEmergency, hospitals: [] };
+  const btn = document.getElementById('intake-btn');
+  btn.disabled = true; btn.textContent = t('finding');
+  submitQuestion(q, { cards: true, label }).then(() => {
+    btn.disabled = false; setEmergency(isEmergency);
+    document.getElementById('intake').style.display = 'none';
+    document.getElementById('followup-area').style.display = 'block';
+  });
+}
+
+// Follow-ups like "which of these…" lose track of the earlier list, so name the hospitals explicitly.
+function suggestedContext() {
+  const hs = (caseCtx && caseCtx.hospitals) || [];
+  if (!hs.length) return '';
+  return ' Hospitals already suggested in this chat: ' + hs.slice(0, 10).join('; ') +
+         '. Words like "these", "them" or "which of" refer to these hospitals, so only answer about them.';
+}
+
+// ── Confirm sent patient → record the case ────────────────────────────────
+function confirmSent() {
+  if (isListening) stopListening();
+  document.getElementById('followup-area').style.display = 'none';
+  const ctx = caseCtx || { need: '', address: '', freq: '', emergency: isEmergency, hospitals: [] };
+  const opts = ctx.hospitals.map(h => `<option>${escHtml(h)}</option>`).join('') +
+               `<option value="">${t('other_hosp')}</option>`;
+  const desc = [ctx.need && t('desc_need', { x: ctx.need }),
+                ctx.address && t('desc_near', { x: ctx.address }),
+                ctx.freq && t('desc_freq', { x: ctx.freq }),
+                t(ctx.emergency ? 'desc_em' : 'desc_non')].filter(Boolean).join(' ');
+  const div = document.createElement('div');
+  div.className = 'case-form';
+  div.id = 'case-form';
+  div.innerHTML = `
+    <h2>${t('case_title')}</h2>
+    <div class="lead">${t('case_lead')}</div>
+    <label for="case-name">${t('f_name')}</label>
+    <div class="intake-row"><input id="case-name" autocomplete="off">
+      <button class="field-mic" title="Speak" onclick="startListening('case-name', this)">🎤</button></div>
+    <label for="case-address">${t('f_address')}</label>
+    <div class="intake-row"><input id="case-address" autocomplete="off" value="${escHtml(ctx.address)}">
+      <button class="field-mic" title="Speak" onclick="startListening('case-address', this)">🎤</button></div>
+    <label for="case-phone">${t('f_phone')}</label>
+    <div class="intake-row"><input id="case-phone" type="tel" autocomplete="off" placeholder="+91 …">
+      <button class="field-mic" title="Speak" onclick="startListening('case-phone', this)">🎤</button></div>
+    <label for="case-dob">${t('f_dob')}</label>
+    <input id="case-dob" type="date" max="${new Date().toISOString().slice(0, 10)}">
+    <label for="case-program">${t('f_program')}</label>
+    <div class="intake-row"><input id="case-program" list="care-programs" autocomplete="off"
+        placeholder="e.g. PM-JAY (Ayushman Bharat), Janani Suraksha Yojana, none">
+      <button class="field-mic" title="Speak" onclick="startListening('case-program', this)">🎤</button></div>
+    <datalist id="care-programs">
+      <option>PM-JAY (Ayushman Bharat)</option><option>Janani Suraksha Yojana (JSY)</option>
+      <option>Janani Shishu Suraksha Karyakram (JSSK)</option><option>PM National Dialysis Programme</option>
+      <option>State health insurance scheme</option><option>Private insurance</option><option>None</option>
+    </datalist>
+    <label for="case-history">${t('f_history')}</label>
+    <div class="intake-row"><textarea id="case-history" rows="3"
+        placeholder="Conditions, previous surgeries, allergies, current medication"></textarea>
+      <button class="field-mic" title="Speak" onclick="startListening('case-history', this)">🎤</button></div>
+    <label for="case-contacts">${t('f_contacts')}</label>
+    <div class="intake-row"><textarea id="case-contacts" rows="2"
+        placeholder="Name, relation, phone, e.g. Ramesh Kumar, husband, +91 98xxx xxxxx"></textarea>
+      <button class="field-mic" title="Speak" onclick="startListening('case-contacts', this)">🎤</button></div>
+    <label for="case-hospital">${t('f_hospital')}</label>
+    <select id="case-hospital">${opts}</select>
+    <label for="case-desc">${t('f_desc')}</label>
+    <div class="intake-row"><textarea id="case-desc" rows="4"
+      placeholder="${t('ph_desc')}">${escHtml(desc)}</textarea>
+      <button class="field-mic" title="Speak" onclick="startListening('case-desc', this)">🎤</button></div>
+    <div class="intake-error" id="case-error"></div>
+    <div class="btn-row">
+      <button class="ask-btn" style="background:var(--surface2)" onclick="cancelCase()">${t('back_chat')}</button>
+      <button class="ask-btn confirm" id="case-save" onclick="saveCase()">${t('save_case')}</button>
+    </div>`;
+  document.getElementById('answers').appendChild(div);
+  if (!restoring) div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('case-name').focus();
+}
+
+function renderCaseSaved(name, caseId) {
+  const div = document.createElement('div');
+  div.className = 'case-form';
+  div.innerHTML = `<div class="case-saved">${escHtml(t('case_saved', { name }))}</div>
+    <div class="lead" style="margin-top:6px">${escHtml(t('case_saved_sub', { id: caseId }))}</div>`;
+  document.getElementById('answers').appendChild(div);
+  if (!restoring) div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('followup-area').style.display = 'none';
+  const nb = document.getElementById('new-convo-btn');
+  nb.dataset.key = 'new_patient';
+  nb.textContent = t('new_patient');
+  nb.style.display = 'block';
+}
+
+function cancelCase() {
+  const f = document.getElementById('case-form');
+  if (f) f.remove();
+  document.getElementById('followup-area').style.display = 'block';
+}
+
+async function saveCase() {
+  const v = id => document.getElementById(id).value.trim();
+  const err = document.getElementById('case-error');
+  const missing = [];
+  if (!v('case-name')) missing.push(t('f_name'));
+  if (!v('case-address')) missing.push(t('f_address'));
+  if (!v('case-phone')) missing.push(t('f_phone'));
+  if (!v('case-desc')) missing.push(t('f_desc'));
+  if (missing.length) { err.textContent = t('please_add') + ' ' + missing.join(', ') + '.'; return; }
+  if (v('case-phone').replace(/\D/g, '').length < 10) { err.textContent = t('full_phone'); return; }
+  err.textContent = '';
+  const btn = document.getElementById('case-save');
+  btn.disabled = true; btn.textContent = t('saving');
+  const ctx = caseCtx || {};
+  try {
+    const res = await fetch('/api/cases', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        patient_name: v('case-name'), patient_address: v('case-address'), patient_phone: v('case-phone'),
+        case_description: v('case-desc'), hospital_sent_to: v('case-hospital'),
+        date_of_birth: v('case-dob'), care_program: v('case-program'),
+        medical_history: v('case-history'), secondary_contacts: v('case-contacts'),
+        suggested_hospitals: (ctx.hospitals || []).join('; '), patient_need: ctx.need,
+        search_address: ctx.address, treatment_frequency: ctx.freq,
+        is_emergency: ctx.emergency ?? isEmergency, genie_conversation_id: conversationId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    document.getElementById('case-form').remove();
+    renderCaseSaved(v('case-name'), data.case_id);
+    recordMessage({ kind: 'case', name: v('case-name'), case_id: data.case_id });
+  } catch (e) {
+    err.textContent = t('save_fail') + ' ' + e.message;
+    btn.disabled = false; btn.textContent = t('save_case');
+  }
+}
+
+function newConversation() { newChat(); }
+
+function newChat() {
+  if (isListening) stopListening();
+  refLock(null);
+  currentChatId = null;
+  restoring = false;
+  setMode('user');
+  setEmergency(true);
+  caseCtx = null;
+  document.getElementById('new-convo-btn').dataset.key = 'new_convo';
+  document.getElementById('new-convo-btn').textContent = t('new_convo');
+  document.getElementById('intake').style.display = 'block';
+  document.getElementById('followup-area').style.display = 'none';
+  document.getElementById('intake-address').value = '';
+  document.getElementById('intake-need').value = '';
+  document.getElementById('intake-freq').value = '';
+  conversationId = null;
+  document.getElementById('answers').innerHTML = '';
+  document.getElementById('new-convo-btn').style.display = 'none';
+  document.getElementById('intake-error').textContent = '';
+  renderChatList();
+  document.getElementById('main').scrollTop = 0;
+}
+
+// ── Chat history (stored in this browser) ─────────────────────────────────
+const CHATS_KEY = 'hospitalvoice_chats_v1';
+let currentChatId = null;
+let restoring = false;
+
+function loadChats() {
+  try { return JSON.parse(localStorage.getItem(CHATS_KEY)) || []; } catch (e) { return []; }
+}
+function storeChats(chats) {
+  try { localStorage.setItem(CHATS_KEY, JSON.stringify(chats.slice(0, 200))); }
+  catch (e) { console.warn('Could not save chat history', e); }
+}
+
+function recordMessage(msg) {
+  if (msg.data && msg.data.table && msg.data.table.rows)   // keep storage small
+    msg.data = { ...msg.data, table: { columns: msg.data.table.columns, rows: msg.data.table.rows.slice(0, 50) } };
+  const chats = loadChats();
+  let chat = chats.find(c => c.id === currentChatId);
+  if (!chat) {
+    const title = caseCtx && caseCtx.need ? `${caseCtx.need} · ${caseCtx.address}` : (msg.q || t('nav_new').replace(/^\S+\s/, ''));
+    chat = { id: 'c' + Date.now() + Math.random().toString(36).slice(2, 7), title: title.slice(0, 90),
+             created: Date.now(), messages: [] };
+    chats.unshift(chat);
+    currentChatId = chat.id;
+  }
+  chat.messages.push(msg);
+  chat.updated = Date.now();
+  chat.conversationId = conversationId;
+  chat.caseCtx = caseCtx;
+  chat.emergency = isEmergency;
+  if (msg.kind === 'case') chat.closed = true;
+  chats.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  storeChats(chats);
+  renderChatList();
+}
+
+function renderChatList() {
+  const chats = loadChats();
+  const el = document.getElementById('chat-list');
+  if (!chats.length) { el.innerHTML = `<div class="nav-empty">${t('no_chats')}</div>`; return; }
+  el.innerHTML = chats.map(c => `
+    <div class="chat-item ${c.id === currentChatId ? 'active' : ''}" title="${escHtml(c.title)}">
+      ${c.closed ? '<span class="dot" title="Patient sent">●</span>' : ''}
+      <button class="open" onclick="openChat('${c.id}')">${escHtml(c.title)}</button>
+      <button class="del" title="Delete chat" onclick="deleteChat('${c.id}')">✕</button>
+    </div>`).join('');
+}
+
+function deleteChat(id) {
+  if (!confirm(t('confirm_delete_chat'))) return;
+  storeChats(loadChats().filter(c => c.id !== id));
+  if (id === currentChatId) newChat(); else renderChatList();
+}
+
+function openChat(id) {
+  const chat = loadChats().find(c => c.id === id);
+  if (!chat) return;
+  newChat();
+  currentChatId = chat.id;
+  conversationId = chat.conversationId || null;
+  caseCtx = chat.caseCtx || null;
+  setEmergency(chat.emergency !== false);
+  document.getElementById('intake').style.display = 'none';
+  restoring = true;
+  for (const m of chat.messages) {
+    if (m.kind === 'cards') renderCards(m.q, m.data);
+    else if (m.kind === 'case') renderCaseSaved(m.name, m.case_id);
+    else if (m.kind === 'ref') refRestoreNote(m);
+    else renderAnswer(m.q, m.data, m.isFirst);
+  }
+  restoring = false;
+  if (!chat.closed) {
+    document.getElementById('followup-area').style.display = 'block';
+    document.getElementById('new-convo-btn').style.display = 'block';
+  }
+  renderChatList();
+}
+
+// ── Search ────────────────────────────────────────────────────────────────
+let searchSel = 0;
+function chatText(c) {
+  const parts = [c.title];
+  for (const m of c.messages || []) {
+    parts.push(m.q || '', m.name || '');
+    if (m.data) {
+      parts.push(m.data.answer || '');
+      for (const h of (m.data.cards && m.data.cards.hospitals) || []) parts.push(h.name, h.address || '', (h.bullets || []).join(' '));
+    }
+  }
+  return parts.filter(Boolean).join(' \n ');
+}
+function openSearch() {
+  document.getElementById('nav').classList.remove('open');
+  document.getElementById('search-overlay').classList.add('open');
+  const i = document.getElementById('search-input');
+  i.value = ''; runSearch(); i.focus();
+}
+function closeSearch() { document.getElementById('search-overlay').classList.remove('open'); }
+function runSearch() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const terms = q.split(/\s+/).filter(Boolean);
+  const hits = loadChats().filter(c => { const t = chatText(c).toLowerCase(); return terms.every(w => t.includes(w)); });
+  searchSel = 0;
+  const box = document.getElementById('search-results');
+  if (!hits.length) { box.innerHTML = `<div class="search-none">${t(q ? 'search_none' : 'search_empty')}</div>`; return; }
+  box.innerHTML = hits.slice(0, 30).map((c, i) => {
+    const text = chatText(c);
+    let snippet = '';
+    if (terms.length) {
+      const at = text.toLowerCase().indexOf(terms[0]);
+      snippet = (at > 40 ? '…' : '') + text.slice(Math.max(0, at - 40), at + 100).replace(/\s+/g, ' ') + '…';
+    }
+    const mark = str => { let h = escHtml(str); for (const w of terms) h = h.replace(new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `<mark>${m}</mark>`); return h; };
+    const when = new Date(c.updated || c.created).toLocaleString();
+    return `<button class="search-hit ${i === 0 ? 'sel' : ''}" data-id="${c.id}" onclick="closeSearch(); openChat('${c.id}')">
+      <div class="t">${mark(c.title)}</div><div class="s">${when}${snippet ? ' · ' + mark(snippet) : ''}</div></button>`;
+  }).join('');
+}
+function searchKey(e) {
+  const hits = [...document.querySelectorAll('.search-hit')];
+  if (e.key === 'Escape') return closeSearch();
+  if (!hits.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    searchSel = (searchSel + (e.key === 'ArrowDown' ? 1 : hits.length - 1)) % hits.length;
+    hits.forEach((h, i) => h.classList.toggle('sel', i === searchSel));
+    hits[searchSel].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') { closeSearch(); openChat(hits[searchSel].dataset.id); }
+}
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openSearch(); }
+  else if (e.key === 'Escape') closeSearch();
+});
+
+// ── Patient tracker ───────────────────────────────────────────────────────
+let trackerCases = [];
+async function loadTracker() {
+  document.getElementById('tracker-list').innerHTML = `<div class="search-none">${t('tr_loading')}</div>`;
+  try {
+    const res = await fetch('/api/cases');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    trackerCases = data.cases || [];
+    renderTracker();
+  } catch (e) {
+    document.getElementById('tracker-list').innerHTML = `<div class="search-none">Could not load cases: ${escHtml(e.message)}</div>`;
+  }
+}
+function renderTracker() {
+  const q = document.getElementById('tracker-filter').value.trim().toLowerCase();
+  const rows = trackerCases.filter(c => !q || Object.values(c).join(' ').toLowerCase().includes(q));
+  document.getElementById('tracker-count').textContent =
+    `${rows.length} of ${trackerCases.length} case${trackerCases.length === 1 ? '' : 's'}`;
+  if (!rows.length) {
+    document.getElementById('tracker-list').innerHTML =
+      `<div class="search-none">${t(trackerCases.length ? 'tr_nomatch' : 'tr_none')}</div>`;
+    return;
+  }
+  const chats = loadChats();
+  document.getElementById('tracker-list').innerHTML = `<div style="overflow-x:auto"><table class="ttable">
+    <thead><tr>${['th_sent','th_patient','th_phone','th_hospital','th_need','th_program','th_type','th_coord']
+      .map(k => `<th>${t(k)}</th>`).join('')}<th></th></tr></thead>
+    <tbody>${rows.map((c, i) => {
+      const chat = c.genie_conversation_id && chats.find(x => x.conversationId === c.genie_conversation_id);
+      const when = c.created_at ? new Date(c.created_at.replace(' ', 'T') + (/Z|[+-]\d\d:?\d\d$/.test(c.created_at) ? '' : 'Z')).toLocaleString() : '';
+      return `<tr class="case-row" onclick="toggleCase(${i})">
+        <td>${escHtml(when)}</td><td><strong>${escHtml(c.patient_name || '')}</strong>${c.date_of_birth ?
+          `<br><span style="color:var(--muted)">DOB ${escHtml(c.date_of_birth)} (${ageOf(c.date_of_birth)})</span>` : ''}<br>
+          <span style="color:var(--muted)">${escHtml(c.patient_address || '')}</span></td>
+        <td style="white-space:nowrap"><a href="tel:${escHtml((c.patient_phone || '').replace(/[^0-9+]/g, ''))}" style="color:var(--text)"
+             onclick="event.stopPropagation()">${escHtml(c.patient_phone || '')}</a></td>
+        <td>${escHtml(c.hospital_sent_to || '—')}</td><td>${escHtml(c.patient_need || '')}</td>
+        <td>${escHtml(c.care_program || '—')}</td>
+        <td>${String(c.is_emergency) === 'true' ? `<span class="pill em">${t('pill_em')}</span>` : `<span class="pill">${t('pill_non')}</span>`}</td>
+        <td style="color:var(--muted)">${escHtml(c.coordinator_email || '')}</td>
+        <td>${chat ? `<button class="linkbtn" onclick="event.stopPropagation(); openChat('${chat.id}')">${t('open_chat')}</button>` : ''}</td>
+      </tr><tr class="desc-row" id="case-desc-${i}" style="display:none"><td colspan="9">${
+        [['Case', c.case_description], ['Medical history', c.medical_history],
+         ['Secondary contacts', c.secondary_contacts], ['Suggested hospitals', c.suggested_hospitals]]
+          .filter(([, v]) => v).map(([k, v]) => `<strong style="color:var(--text)">${k}:</strong> ${escHtml(v)}`).join('<br><br>')
+      }</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+function ageOf(dob) {
+  const d = new Date(dob), n = new Date();
+  let a = n.getFullYear() - d.getFullYear();
+  if (n < new Date(n.getFullYear(), d.getMonth(), d.getDate())) a--;
+  return isNaN(a) ? '' : `${a} yrs`;
+}
+
+function toggleCase(i) {
+  const r = document.getElementById('case-desc-' + i);
+  r.style.display = r.style.display === 'none' ? 'table-row' : 'none';
+}
+
+// ── Planner: India map (aitongl) + state view, population context and full dashboard (anhle) ──
+let plannerLoaded = false;
+let PLANNER_LAST = null;     // full dashboard arguments, redrawn on language change
+let PANEL_LAST = null;       // [renderer name, args] of the side panel, redrawn on language change
+let _indiaMap = null;
+let _stateLayer = null;
+let _districtLayer = null;
+let _currentStateName = null;      // name as used by our data (/api/dashboard/*)
+let _currentDistrictName = null;
+let API_STATES = [];               // state names in our data
+let API_DISTRICTS = {};            // state -> [district names]
+
+// GeoJSON outlines
+const INDIA_STATES_URL = 'https://raw.githubusercontent.com/geohacker/india/master/state/india_state.geojson';
+
+// The map files use some older or longer names than our data.
+const STATE_ALIASES = { orissa: 'odisha', uttaranchal: 'uttarakhand', pondicherry: 'puducherry', nctofdelhi: 'delhi',
+  andamanandnicobar: 'andamanandnicobarislands', dadraandnagarhaveli: 'dadraandnagarhavelianddamananddiu',
+  damananddiu: 'dadraandnagarhavelianddamananddiu', jammuandkashmir: 'jammuandkashmir' };
+function _nk(s) { return String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z]/g, ''); }
+function resolveState(geoName) {
+  const k = STATE_ALIASES[_nk(geoName)] || _nk(geoName);
+  return API_STATES.find(s => _nk(s) === k) || API_STATES.find(s => _nk(s).startsWith(k) || k.startsWith(_nk(s))) || geoName;
+}
+async function districtsOf(state) {
+  if (!API_DISTRICTS[state]) {
+    try {
+      const res = await fetch(`/api/dashboard/districts?state=${encodeURIComponent(state)}`);
+      API_DISTRICTS[state] = ((await res.json()).districts || []).map(d => d.district);
+    } catch (e) { API_DISTRICTS[state] = []; }
+  }
+  return API_DISTRICTS[state];
+}
+function resolveDistrict(geoName, list) {
+  const k = _nk(geoName);
+  return list.find(d => _nk(d) === k) || list.find(d => _nk(d).startsWith(k) || k.startsWith(_nk(d))) || geoName;
+}
+
+async function initPlanner() {
+  plannerLoaded = true;
+  try { API_STATES = (await (await fetch('/api/dashboard/states')).json()).states || []; } catch (e) { API_STATES = []; }
+  await loadLeaflet();
+  buildIndiaMap();
+}
+
+function loadLeaflet() {
+  return new Promise(resolve => {
+    if (window.L) { resolve(); return; }
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = resolve;
+    document.head.appendChild(script);
+  });
+}
+
+function setMapHint(key) {
+  const el = document.getElementById('map-hint');
+  el.dataset.key = key;
+  el.textContent = (key === 'map_hint_state' ? '🖱 ' : key === 'map_hint_district' ? '🖱 ' : '⚠ ') + t(key);
+}
+
+function buildIndiaMap() {
+  if (_indiaMap) { _indiaMap.remove(); _indiaMap = null; }
+  const L = window.L;
+  _indiaMap = L.map('india-map', { zoomControl: true, attributionControl: true,
+                                   maxBounds: [[5, 60], [40, 100]], minZoom: 4 }).setView([22, 80], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
+  }).addTo(_indiaMap);
+  setMapHint('map_hint_state');
+  loadStateLayer();
+}
+
+async function loadStateLayer() {
+  const L = window.L;
+  try {
+    const geojson = await (await fetch(INDIA_STATES_URL)).json();
+    _stateLayer = L.geoJSON(geojson, {
+      style: stateStyle,
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties.NAME_1 || feature.properties.name || feature.properties.ST_NM || '';
+        layer.on({
+          mouseover: e => { e.target.setStyle({ fillOpacity: 0.5, weight: 2 }); },
+          mouseout: e => { _stateLayer && _stateLayer.resetStyle(e.target); },
+          click: () => onStateClick(name, layer)
+        });
+        layer.bindTooltip(resolveState(name), { sticky: true, className: 'map-tooltip', direction: 'top' });
+      }
+    }).addTo(_indiaMap);
+    _indiaMap.invalidateSize();                       // measure the container after layout, then fit India
+    _indiaMap.fitBounds(_stateLayer.getBounds());
+  } catch (e) {
+    console.error('Failed to load India states GeoJSON', e);
+    setMapHint('map_load_fail');
+    showStatePicker();   // no outlines: let the planner pick a state from a list instead
+  }
+}
+
+function stateStyle() { return { fillColor: '#3b82f6', fillOpacity: 0.25, color: '#1d4ed8', weight: 1.2 }; }
+function districtStyle() { return { fillColor: '#8b5cf6', fillOpacity: 0.2, color: '#6d28d9', weight: 1 }; }
+
+function showStatePicker() {
+  openPanel(t('pl_state'), t('pl_select_state').replace(/[—-]/g, '').trim(), API_STATES.length
+    ? `<div class="pick-list">${API_STATES.map(s => `<button class="pick-btn" onclick="onStateClick('${escHtml(s.replace(/'/g, "\\'"))}', null)">${escHtml(s)}</button>`).join('')}</div>`
+    : `<div class="placeholder">${t('err_load')}</div>`);
+  PANEL_LAST = ['showStatePicker', []];
+}
+
+// ── State click: zoom, district outlines, state summary in the side panel ────
+async function onStateClick(geoName, stateLayer) {
+  const state = resolveState(geoName);
+  _currentStateName = state;
+  _currentDistrictName = null;
+  if (!stateLayer && _stateLayer) {                 // picked from a list: find its outline to zoom to
+    _stateLayer.eachLayer(l => { const p = l.feature && l.feature.properties || {};
+      if (resolveState(p.NAME_1 || p.name || p.ST_NM) === state) stateLayer = l; });
+  }
+  if (stateLayer) _indiaMap.fitBounds(stateLayer.getBounds(), { padding: [20, 20] });
+
+  document.getElementById('map-breadcrumb').style.display = 'flex';
+  document.getElementById('bc-state-sep').style.display = '';
+  const stateBtn = document.getElementById('bc-state-btn');
+  stateBtn.textContent = state;
+  stateBtn.style.display = '';
+  document.getElementById('bc-district-sep').style.display = 'none';
+  document.getElementById('bc-district-label').textContent = '';
+  setMapHint('map_hint_district');
+
+  loadStatePanel(state);                 // "only a state selected" → whole-state data
+  await loadDistrictLayer(state, geoName);
+}
+
+async function loadStatePanel(state) {
+  openPanel(state, t('pl_all_combined', { n: '…' }), `<div class="loading"><div class="spinner"></div>${t('loading')}</div>`);
+  try {
+    const qs = `state=${encodeURIComponent(state)}`;
+    const [sRes, cRes, districts] = await Promise.all([
+      fetch(`/api/dashboard/state?${qs}`), fetch(`/api/dashboard/state_context?${qs}`), districtsOf(state)]);
+    const d = await sRes.json();
+    if (!sRes.ok) throw new Error(d.error || sRes.statusText);
+    const ctx = cRes.ok ? await cRes.json() : null;
+    renderStatePanel(d, ctx, state, districts);
+  } catch (e) {
+    document.getElementById('data-panel-body').innerHTML = `<div class="loading">${t('err_load')} ${escHtml(e.message)}</div>`;
+  }
+}
+
+function renderStatePanel(d, ctx, state, districts) {
+  if (state !== _currentStateName) return;
+  PANEL_LAST = ['renderStatePanel', [d, ctx, state, districts]];
+  const n = v => v == null ? '–' : Math.round(Number(v)).toLocaleString('en-IN');
+  document.getElementById('panel-title').textContent = state;
+  document.getElementById('panel-subtitle').textContent = t('pl_all_combined', { n: n(d.n_districts) });
+  document.getElementById('data-panel-body').innerHTML = `
+    <button class="ref-btn small full-btn" onclick="openFullDashboard('${escHtml(state.replace(/'/g, "\\'"))}', null)">📊 ${t('panel_full_dashboard')}</button>
+    ${miniTiles(d)}
+    ${ctx ? stateContextCard(ctx, d, state, true) : ''}
+    <div class="card" style="padding:14px">
+      <h2 style="font-size:13px;margin-bottom:10px">🗂 ${t('dt_title')} (${districts.length})</h2>
+      <div class="pick-list">${districts.map(x => `<button class="pick-btn" onclick="onDistrictClick('${escHtml(String(x).replace(/'/g, "\\'"))}', '${escHtml(state.replace(/'/g, "\\'"))}')">${escHtml(x)}</button>`).join('')}</div>
+    </div>`;
+}
+
+function miniTiles(d) {
+  const n = v => v == null ? '–' : Math.round(Number(v)).toLocaleString('en-IN');
+  const nFac = Number(d.n_facilities) || 0;
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="stat-tile ${nFac < 5 ? 'danger' : nFac < 20 ? 'warn' : 'good'}" style="padding:14px">
+        <div class="stat-label" style="font-size:10px">${t('dt_facilities')}</div>
+        <div class="stat-value" style="font-size:26px">${n(d.n_facilities)}</div></div>
+      <div class="stat-tile" style="padding:14px">
+        <div class="stat-label" style="font-size:10px">${t('pl_beds')}</div>
+        <div class="stat-value" style="font-size:26px">${n(d.total_beds_listed)}</div></div>
+      <div class="stat-tile ${Number(d.n_icu) < 1 ? 'danger' : ''}" style="padding:14px">
+        <div class="stat-label" style="font-size:10px">${t('pl_icu')}</div>
+        <div class="stat-value" style="font-size:26px">${n(d.n_icu)}</div></div>
+      <div class="stat-tile ${Number(d.n_blood_bank) < 1 ? 'warn' : 'good'}" style="padding:14px">
+        <div class="stat-label" style="font-size:10px">${t('pl_blood_banks')}</div>
+        <div class="stat-value" style="font-size:26px">${n(d.n_blood_bank)}</div></div>
+    </div>`;
+}
+
+async function loadDistrictLayer(state, geoName) {
+  const L = window.L;
+  if (_districtLayer) { _indiaMap.removeLayer(_districtLayer); _districtLayer = null; }
+  const list = await districtsOf(state);
+  const slug = String(geoName || state).toLowerCase().replace(/\s+/g, '_');
+  const tryUrls = [
+    `https://raw.githubusercontent.com/datameet/maps/master/Districts/${slug}.geojson`,
+    `https://raw.githubusercontent.com/geohacker/india/master/district/india_district.geojson`
+  ];
+  let gjOut = null;
+  for (const url of tryUrls) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) continue;
+      const gj = await r.json();
+      if (url.includes('india_district')) {
+        gj.features = gj.features.filter(f => resolveState(f.properties.NAME_1 || f.properties.state || '') === state);
+      }
+      if (gj.features && gj.features.length) { gjOut = gj; break; }
+    } catch (e) {}
+  }
+  if (!gjOut || state !== _currentStateName) return;   // no outlines: the district list in the panel is the fallback
+  _districtLayer = L.geoJSON(gjOut, {
+    style: districtStyle,
+    onEachFeature: (feature, layer) => {
+      const raw = feature.properties.NAME_2 || feature.properties.district || feature.properties.DISTRICT || '';
+      const dName = resolveDistrict(raw, list);
+      layer.on({
+        mouseover: e => e.target.setStyle({ fillOpacity: 0.5, weight: 2 }),
+        mouseout: e => _districtLayer && _districtLayer.resetStyle(e.target),
+        click: () => onDistrictClick(dName, state)
+      });
+      layer.bindTooltip(dName || '', { sticky: true, className: 'map-tooltip', direction: 'top' });
+    }
+  }).addTo(_indiaMap);
+}
+
+// ── District click: compact district panel ──────────────────────────────────
+async function onDistrictClick(districtName, stateName) {
+  if (!districtName) return;
+  _currentDistrictName = districtName;
+  if (stateName) _currentStateName = stateName;
+  document.getElementById('map-breadcrumb').style.display = 'flex';
+  document.getElementById('bc-district-sep').style.display = '';
+  document.getElementById('bc-district-label').textContent = districtName;
+  openPanel(districtName, _currentStateName || '', `<div class="loading"><div class="spinner"></div>${t('loading')}</div>`);
+  try {
+    const st = _currentStateName, dt = districtName;
+    const [dRes, fRes] = await Promise.all([
+      fetch(`/api/dashboard/district?state=${encodeURIComponent(st)}&district=${encodeURIComponent(dt)}`),
+      fetch(`/api/dashboard/facilities?state=${encodeURIComponent(st)}&district=${encodeURIComponent(dt)}`)
+    ]);
+    const d = await dRes.json();
+    if (!dRes.ok) throw new Error(d.error || dRes.statusText);
+    const fData = await fRes.json();
+    renderPanel(d, fData.facilities || [], st, dt);
+  } catch (e) {
+    document.getElementById('data-panel-body').innerHTML = `<div class="loading">${t('err_load')} ${escHtml(e.message)}</div>`;
+  }
+}
+
+function openPanel(title, subtitle, bodyHtml) {
+  document.getElementById('panel-title').textContent = title;
+  document.getElementById('panel-subtitle').textContent = subtitle;
+  document.getElementById('data-panel-body').innerHTML = bodyHtml;
+  document.getElementById('data-panel').classList.add('open');
+}
+
+function mapGoHome() {
+  _currentStateName = null;
+  _currentDistrictName = null;
+  PANEL_LAST = null;
+  if (_districtLayer) { _indiaMap.removeLayer(_districtLayer); _districtLayer = null; }
+  if (_stateLayer) _indiaMap.fitBounds(_stateLayer.getBounds());
+  document.getElementById('map-breadcrumb').style.display = 'none';
+  setMapHint('map_hint_state');
+  closePanel();
+}
+
+function mapGoState() {
+  _currentDistrictName = null;
+  document.getElementById('bc-district-sep').style.display = 'none';
+  document.getElementById('bc-district-label').textContent = '';
+  setMapHint('map_hint_district');
+  if (_currentStateName) loadStatePanel(_currentStateName);
+}
+
+function closePanel() { document.getElementById('data-panel').classList.remove('open'); }
+
+function renderPanel(d, facilities, state, district) {
+  if (district !== _currentDistrictName) return;
+  PANEL_LAST = ['renderPanel', [d, facilities, state, district]];
+  const dists = [
+    { key: 'km_nearest_mri', label: t('sv_mri'), icon: '🔬' },
+    { key: 'km_nearest_ct_scan', label: t('sv_ct'), icon: '🫁' },
+    { key: 'km_nearest_icu', label: 'ICU', icon: '🏥' },
+    { key: 'km_nearest_dialysis', label: t('sv_dialysis'), icon: '💉' },
+    { key: 'km_nearest_blood_bank', label: t('sv_blood_bank'), icon: '🩸' },
+    { key: 'km_nearest_nicu', label: 'NICU', icon: '👶' },
+    { key: 'km_nearest_emergency_c_section', label: t('sv_csection'), icon: '🚑' },
+    { key: 'km_nearest_trauma_emergency', label: t('sv_trauma'), icon: '⚡' },
+  ];
+  const qualCounts = { High: 0, Medium: 0, Low: 0 };
+  for (const f of facilities) qualCounts[f.quality_label] = (qualCounts[f.quality_label] || 0) + 1;
+
+  document.getElementById('data-panel-body').innerHTML = `
+    <button class="ref-btn small full-btn" onclick="openFullDashboard('${escHtml(state.replace(/'/g, "\\'"))}', '${escHtml(district.replace(/'/g, "\\'"))}')">📊 ${t('panel_full_dashboard')}</button>
+    ${miniTiles(d)}
+    <div class="card" style="padding:16px">
+      <h2 style="font-size:12px;margin-bottom:12px">🏅 ${t('panel_quality')}</h2>
+      ${['High', 'Medium', 'Low'].map(q => {
+        const c = qualCounts[q] || 0;
+        const color = q === 'High' ? '#22c55e' : q === 'Medium' ? '#f59e0b' : '#ef4444';
+        const pct = facilities.length ? Math.round(c / facilities.length * 100) : 0;
+        return `<div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span style="color:${color};font-weight:600">${t('ql_' + q.toLowerCase())}</span><span style="color:var(--muted)">${c}</span></div>
+          <div style="background:var(--surface2);border-radius:4px;height:5px">
+            <div style="background:${color};width:${pct}%;height:100%;border-radius:4px;transition:width 0.6s ease"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card" style="padding:16px">
+      <h2 style="font-size:12px;margin-bottom:12px">🗺 ${t('pl_distance')}</h2>
+      ${dists.map(({ key, label, icon }) => {
+        const km = Number(d[key]);
+        const cls = isNaN(km) || km === 0 ? '' : km < 20 ? 'close' : km < 60 ? 'mid' : 'far';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--muted)">${icon} ${escHtml(label)}</span>
+          <span class="dist-badge ${cls || 'none'}">${isNaN(km) || km === 0 ? '–' : km.toFixed(0) + ' km'}</span></div>`;
+      }).join('')}
+    </div>
+    <div class="card" style="padding:16px">
+      <h2 style="font-size:12px;margin-bottom:12px">🏥 ${t('panel_top_fac')} (${facilities.length})</h2>
+      ${facilities.slice(0, 15).map(f => {
+        const color = f.quality_label === 'High' ? '#22c55e' : f.quality_label === 'Medium' ? '#f59e0b' : '#ef4444';
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(f.name || '–')}</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-size:11px;color:var(--muted)">${escHtml(f.facility_type || '')}</span>
+            ${f.quality_label ? `<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:${color}22;color:${color};font-weight:700">${t('ql_' + String(f.quality_label).toLowerCase())}</span>` : ''}
+          </div></div>`;
+      }).join('')}
+      ${facilities.length > 15 ? `<div style="color:var(--muted);font-size:11px;padding-top:10px;text-align:center">${t('panel_more', { n: facilities.length - 15 })}</div>` : ''}
+    </div>`;
+
+  // Fly to and mark this district's facilities on the India map
+  const mapped = facilities.filter(f => f.lat_final && f.lon_final &&
+    Math.abs(Number(f.lat_final)) > 0.1 && Math.abs(Number(f.lon_final)) > 0.1);
+  if (window._facilityMarkers) window._facilityMarkers.forEach(m => _indiaMap.removeLayer(m));
+  window._facilityMarkers = [];
+  if (mapped.length && _indiaMap) {
+    const lats = mapped.map(f => Number(f.lat_final)), lons = mapped.map(f => Number(f.lon_final));
+    _indiaMap.flyToBounds([[Math.min(...lats), Math.min(...lons)], [Math.max(...lats), Math.max(...lons)]],
+                          { padding: [60, 60], duration: 1 });
+    const L = window.L;
+    const colorFor = q => q === 'High' ? '#22c55e' : q === 'Medium' ? '#f59e0b' : '#ef4444';
+    for (const f of mapped) {
+      const color = colorFor(f.quality_label);
+      const icon = L.divIcon({ className: '',
+        html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid rgba(0,0,0,0.4);box-shadow:0 0 4px ${color}88"></div>`,
+        iconSize: [10, 10], iconAnchor: [5, 5] });
+      const popup = `<div style="font-family:Inter,system-ui;min-width:160px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:3px">${escHtml(f.name || '–')}</div>
+        <div style="color:#888;font-size:11px">${escHtml(f.facility_type || '')}</div>
+        ${f.beds ? `<div style="font-size:11px">🛏 ${escHtml(t('n_beds', { n: f.beds }))}</div>` : ''}
+        ${f.quality_label ? `<span style="font-size:10px;padding:1px 6px;border-radius:999px;background:${color}22;color:${color}">${t('ql_' + String(f.quality_label).toLowerCase())}</span>` : ''}
+      </div>`;
+      window._facilityMarkers.push(L.marker([Number(f.lat_final), Number(f.lon_final)], { icon }).addTo(_indiaMap).bindPopup(popup));
+    }
+  }
+}
+
+// ── Full dashboard (state or district) shown over the map ───────────────────
+function pickDistrict(name) { openFullDashboard(_currentStateName, name || null); }
+function closeFullDashboard() {
+  document.getElementById('dashboard-main').classList.remove('open');
+  PLANNER_LAST = null;
+}
+async function openFullDashboard(state, district) {
+  if (!state) return;
+  const main = document.getElementById('dashboard-main');
+  main.classList.add('open');
+  main.innerHTML = `<div class="loading"><div class="spinner"></div>${t('loading')}</div>`;
+  main.scrollTop = 0;
+  try {
+    const qs = `state=${encodeURIComponent(state)}` + (district ? `&district=${encodeURIComponent(district)}` : '');
+    const [dRes, fRes, cRes] = await Promise.all([
+      fetch(district ? `/api/dashboard/district?${qs}` : `/api/dashboard/state?${qs}`),
+      fetch(`/api/dashboard/facilities?${qs}`),
+      fetch(`/api/dashboard/state_context?state=${encodeURIComponent(state)}`)
+    ]);
+    const d = await dRes.json();
+    if (!dRes.ok) throw new Error(d.error || dRes.statusText);
+    const { facilities } = await fRes.json();
+    const ctx = cRes.ok ? await cRes.json() : null;
+    _currentStateName = state;
+    PLANNER_LAST = [d, facilities || [], state, district || null, ctx];
+    renderDashboard(...PLANNER_LAST);
+  } catch (e) {
+    main.innerHTML = `<button class="new-convo-btn" onclick="closeFullDashboard()">← ${t('panel_back_map')}</button>
+      <div class="loading">${t('err_load')} ${escHtml(e.message)}</div>`;
+  }
+}
+
+// Redraw planner text after a language change
+function plannerRedraw() {
+  const hint = document.getElementById('map-hint');
+  if (hint && hint.dataset.key) setMapHint(hint.dataset.key);
+  if (PANEL_LAST && document.getElementById('data-panel').classList.contains('open')) window[PANEL_LAST[0]](...PANEL_LAST[1]);
+  if (PLANNER_LAST && document.getElementById('dashboard-main').classList.contains('open')) renderDashboard(...PLANNER_LAST);
+}
+
+// kept for older callers
+async function loadDashboard() { if (_currentStateName) openFullDashboard(_currentStateName, _currentDistrictName); }
+async function loadDistricts() {}
+
+function renderDashboard(d, facilities, state, district, ctx) {
+  const main = document.getElementById('dashboard-main');
+  const isState = !district;
+  const area = isState ? 'state' : 'district';
+
+  // Equipment summary from facilities
+  const equipCounts = {};
+  const equipList = ['CT scanner','MRI scanner','ICU','Dialysis','Blood Bank','Ventilator','X-Ray','Ultrasound','ECG','NICU'];
+  for (const f of facilities) {
+    if (!f.equipment_list) continue;
+    try {
+      const eq = typeof f.equipment_list === 'string' ? JSON.parse(f.equipment_list) : f.equipment_list;
+      for (const e of eq) {
+        const key = equipList.find(k => e.toLowerCase().includes(k.toLowerCase()));
+        if (key) equipCounts[key] = (equipCounts[key] || 0) + 1;
+      }
+    } catch(e) {}
+  }
+
+  // NFHS indicators
+  const nfhsKeys = [
+    { key: 'institutional_birth_5y_pct', label: t('nf_inst_births'), good: v => v > 70 },
+    { key: 'child_12_23m_fully_vaccinated_based_on_information_from_eit_pct', label: t('nf_vaccination'), good: v => v > 70 },
+    { key: 'child_u5_who_are_stunted_height_for_age_18_pct', label: t('nf_stunting'), good: v => v < 30, invert: true },
+    { key: 'all_w15_49_who_are_anaemic_pct', label: t('nf_anaemia'), good: v => v < 40, invert: true },
+    { key: 'hh_member_covered_health_insurance_pct', label: t('nf_insurance'), good: v => v > 50 },
+  ];
+
+  // Specialist distances
+  const dists = [
+    { key: 'km_nearest_mri', label: t('sv_mri'), icon: '🔬' },
+    { key: 'km_nearest_ct_scan', label: t('sv_ct'), icon: '🫁' },
+    { key: 'km_nearest_icu', label: 'ICU', icon: '🏥' },
+    { key: 'km_nearest_dialysis', label: t('sv_dialysis'), icon: '💉' },
+    { key: 'km_nearest_blood_bank', label: t('sv_blood_bank'), icon: '🩸' },
+    { key: 'km_nearest_nicu', label: 'NICU', icon: '👶' },
+    { key: 'km_nearest_emergency_c_section', label: t('sv_csection'), icon: '🚑' },
+    { key: 'km_nearest_trauma_emergency', label: t('sv_trauma'), icon: '⚡' },
+  ];
+
+  const n = (val, dec=0) => val == null ? '–' : Number(val).toFixed(dec);
+  const nFacilities = Number(d.n_facilities) || 0;
+
+  // Facility type breakdown
+  const typeCounts = {};
+  for (const f of facilities) {
+    typeCounts[f.facility_type || 'Unknown'] = (typeCounts[f.facility_type || 'Unknown'] || 0) + 1;
+  }
+  const maxType = Math.max(...Object.values(typeCounts));
+
+  main.innerHTML = `
+  <button class="new-convo-btn" style="align-self:flex-start" onclick="closeFullDashboard()">← ${t('panel_back_map')}</button>
+  <!-- Header -->
+  <div>
+    <h1 style="font-size:22px;font-weight:700">${isState ? escHtml(state) : `${escHtml(district)}, ${escHtml(state)}`}</h1>
+    <div style="color:var(--muted);font-size:13px;margin-top:4px">${isState
+      ? `${t('pl_overview')} · ${t('pl_all_combined', { n: n(d.n_districts) })}`
+      : `${t('pl_overview')} · <a href="#" class="chat-link" onclick="event.preventDefault(); pickDistrict('')">← ${escHtml(t('pl_back_to', { state }))}</a>`}</div>
+  </div>
+
+  ${ctx ? stateContextCard(ctx, d, state, isState) : ''}
+
+  <!-- Top stat tiles -->
+  <div class="stat-grid">
+    <div class="stat-tile ${nFacilities < 5 ? 'danger' : nFacilities < 20 ? 'warn' : 'good'}">
+      <div class="stat-label">${t('pl_total_fac')}</div>
+      <div class="stat-value">${n(d.n_facilities)}</div>
+      <div class="stat-unit">${t('pl_incl_hosp', { n: n(d.n_hospitals) })}</div>
+    </div>
+    <div class="stat-tile ${!d.total_beds_listed || Number(d.total_beds_listed) < 50 ? 'warn' : ''}">
+      <div class="stat-label">${t('pl_beds')}</div>
+      <div class="stat-value">${n(d.total_beds_listed)}</div>
+      <div class="stat-unit">${t('pl_beds_recorded')}</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">${t('pl_doctors')}</div>
+      <div class="stat-value">${n(facilities.reduce((s,f) => s + (Number(f.doctors)||0), 0))}</div>
+      <div class="stat-unit">${t(isState ? 'pl_across_top' : 'pl_across', { n: facilities.length })}</div>
+    </div>
+    <div class="stat-tile ${Number(d.n_icu) < 1 ? 'danger' : ''}">
+      <div class="stat-label">${t('pl_icu')}</div>
+      <div class="stat-value">${n(d.n_icu)}</div>
+      <div class="stat-unit">${Number(d.n_icu) > 0 ? '✓ ' + t('pl_available') : '⚠ ' + t(isState ? 'pl_none_state' : 'pl_none_district')}</div>
+    </div>
+    <div class="stat-tile ${Number(d.n_blood_bank) < 1 ? 'warn' : 'good'}">
+      <div class="stat-label">${t('pl_blood_banks')}</div>
+      <div class="stat-value">${n(d.n_blood_bank)}</div>
+      <div class="stat-unit">${t(isState ? 'pl_in_state' : 'pl_in_district')}</div>
+    </div>
+    <div class="stat-tile ${Number(d.n_dialysis) < 1 ? 'warn' : ''}">
+      <div class="stat-label">${t('pl_dialysis')}</div>
+      <div class="stat-value">${n(d.n_dialysis)}</div>
+      <div class="stat-unit">${t('pl_centres')}</div>
+    </div>
+  </div>
+
+  <!-- Specialist distances -->
+  <div class="card">
+    <h2>🗺 ${t('pl_distance')}${isState ? ` <span class="h-note">${t('pl_distance_note')}</span>` : ''}</h2>
+    <div class="dist-grid">
+      ${dists.map(({ key, label, icon }) => {
+        const km = Number(d[key]);
+        const cls = isNaN(km) ? '' : km < 20 ? 'close' : km < 60 ? 'mid' : 'far';
+        return `<div class="dist-item">
+          <div class="dist-icon">${icon}</div>
+          <div class="dist-info">
+            <div class="dist-name">${label}</div>
+            <div class="dist-val ${cls}">${isNaN(km) || km === 0 ? '–' : km.toFixed(0) + ' km'}</div>
+            ${isState && d['max_' + key] != null ? `<div class="dist-worst">${t('pl_worst', { km: Number(d['max_' + key]).toFixed(0) })}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- Facility type breakdown -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+      <h2>🏗 ${t('pl_types')}</h2>
+      ${Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]).map(([type, count]) => `
+        <div class="bar-row">
+          <div class="bar-label" title="${escHtml(type)}">${escHtml(type)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxType*100)}%"></div></div>
+          <div class="bar-val">${count}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- NFHS health indicators -->
+    <div class="card">
+      <h2>📈 ${t('pl_nfhs')}${isState ? ` <span class="h-note">${t('pl_district_avg')}</span>` : ''}</h2>
+      <div class="ring-grid">
+        ${nfhsKeys.map(({ key, label, good, invert }) => {
+          const val = Number(d[key]);
+          if (isNaN(val)) return '';
+          const pct = Math.min(100, Math.max(0, val));
+          const isGood = good(val);
+          const color = isGood ? '#22c55e' : val > (invert ? 60 : 40) ? '#f59e0b' : '#ef4444';
+          const circ = 2 * Math.PI * 20;
+          const dash = (pct / 100) * circ;
+          return `<div class="ring-item">
+            <svg class="ring" width="52" height="52" viewBox="0 0 52 52">
+              <circle class="ring-bg" cx="26" cy="26" r="20"/>
+              <circle class="ring-arc" cx="26" cy="26" r="20"
+                stroke="${color}" stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}"/>
+              <text class="ring-pct" x="26" y="26" transform="rotate(90 26 26)" style="font-size:11px;fill:${color}">${pct.toFixed(0)}%</text>
+            </svg>
+            <div class="ring-label">${label}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  ${isState && d.districts ? districtTable(d.districts) : ''}
+
+  <!-- Equipment availability -->
+  <div class="card">
+    <h2>🔧 ${t('pl_equipment', { n: facilities.length })}</h2>
+    <div class="chip-wrap">
+      ${equipList.map(eq => {
+        const count = equipCounts[eq] || 0;
+        return `<div class="chip ${count > 0 ? 'has' : 'none'}">
+          ${escHtml(t('eq_' + eq.toLowerCase().replace(/[^a-z]/g, '_')))} ${count > 0 ? `(${count})` : '✗'}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- Interactive Map -->
+  <div class="card">
+    <h2>🗺️ ${t('pl_map')} — ${escHtml(district || state)}</h2>
+    <div id="facility-map"></div>
+    <div class="map-legend">
+      <div class="map-legend-item"><span class="map-dot" style="background:#22c55e"></span> ${t('q_high')}</div>
+      <div class="map-legend-item"><span class="map-dot" style="background:#f59e0b"></span> ${t('q_medium')}</div>
+      <div class="map-legend-item"><span class="map-dot" style="background:#ef4444"></span> ${t('q_low')}</div>
+    </div>
+  </div>
+
+  <!-- Facility table -->
+  <div class="card">
+    <h2>🏥 ${isState ? escHtml(t('pl_top_fac', { state })) : t('pl_fac_district')} (${facilities.length})</h2>
+    <div style="overflow-x:auto">
+      <table class="ftable">
+        <thead><tr>
+          <th>${t('col_name')}</th>${isState ? `<th>${t('pl_district')}</th>` : ''}<th>${t('pl_type')}</th><th>${t('pl_beds_col')}</th><th>${t('pl_doctors_col')}</th><th>${t('pl_quality')}</th><th>${t('col_phone')}</th>
+        </tr></thead>
+        <tbody>
+          ${facilities.slice(0, 50).map(f => `<tr>
+            <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(f.name||'–')}</td>
+            ${isState ? `<td>${escHtml(f.district||'–')}</td>` : ''}
+            <td>${escHtml(f.facility_type||'–')}</td>
+            <td>${f.beds || '–'}</td>
+            <td>${f.doctors || '–'}</td>
+            <td><span class="quality-badge q-${f.quality_label||'Low'}">${f.quality_label ? t('ql_' + f.quality_label.toLowerCase()) : '–'}</span></td>
+            <td style="color:var(--muted)">${escHtml(f.official_phone||'–')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      ${facilities.length > 50 ? `<div style="color:var(--muted);font-size:12px;padding:8px">${t('pl_showing', { n: facilities.length })}</div>` : ''}
+    </div>
+  </div>
+  `;
+
+  // Render map after DOM is updated
+  setTimeout(() => renderMap(facilities), 50);
+}
+
+// ── State context: official population + vital rates (and what they imply) ──
+function fmtPeople(n) {                         // Indian units
+  if (n == null || isNaN(n)) return '–';
+  if (n >= 1e7) return (n / 1e7).toFixed(2) + ' ' + t('crore');
+  if (n >= 1e5) return (n / 1e5).toFixed(1) + ' ' + t('lakh');
+  return Math.round(n).toLocaleString('en-IN');
+}
+function stateContextCard(ctx, d, state, isState) {
+  const pop26 = ctx.population && ctx.population['2026'] ? ctx.population['2026'] * 1000 : null;
+  const pop36 = ctx.population && ctx.population['2036'] ? ctx.population['2036'] * 1000 : null;
+  const srs = ctx.srs || {}, ind = ctx.india_srs || {}, mmr = ctx.mmr, imm = ctx.india_mmr || {};
+  const births = pop26 && srs.birth_rate_total ? pop26 * srs.birth_rate_total / 1000 : null;
+  const infantDeaths = births && srs.imr_total ? births * srs.imr_total / 1000 : null;
+  const maternalDeaths = births && mmr && mmr.mmr ? births * mmr.mmr / 100000 : null;
+  const growth = pop26 && pop36 ? (pop36 / pop26 - 1) * 100 : null;
+  const bedsPer1k = isState && pop26 && d.total_beds_listed ? Number(d.total_beds_listed) / pop26 * 1000 : null;
+  const cmp = (v, iv, worseIfHigher = true) => v == null || iv == null ? '' :
+    `<span class="${(worseIfHigher ? v > iv : v < iv) ? 'cmp-bad' : 'cmp-good'}">${t('ctx_india')} ${iv}</span>`;
+  const tile = (label, value, unit, extra = '') =>
+    `<div class="stat-tile"><div class="stat-label">${label}</div><div class="stat-value">${value}</div>
+       <div class="stat-unit">${unit}${extra ? ' · ' + extra : ''}</div></div>`;
+  return `<div class="card">
+    <h2>👥 ${isState ? '' : t('ctx_state_context') + ': '}${t('ctx_title')} — ${escHtml(state)}
+      <span class="h-note">${t('ctx_official')}</span></h2>
+    <div class="stat-grid">
+      ${tile(t('ctx_pop'), fmtPeople(pop26), growth != null ? t('ctx_growth', { pct: `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}` }) : '')}
+      ${tile(t('ctx_birth'), srs.birth_rate_total ?? '–', t('ctx_per_1000'), cmp(srs.birth_rate_total, ind.birth_rate_total))}
+      ${tile(t('ctx_births_yr'), fmtPeople(births), t('ctx_births_how'))}
+      ${tile(t('ctx_death'), srs.death_rate_total ?? '–', t('ctx_per_1000'), cmp(srs.death_rate_total, ind.death_rate_total))}
+      ${tile(t('ctx_imr'), srs.imr_total ?? '–', t('ctx_per_1000_births'), cmp(srs.imr_total, ind.imr_total))}
+      ${tile(t('ctx_infant_deaths'), fmtPeople(infantDeaths), t('ctx_infant_how'))}
+      ${tile(t('ctx_mmr'), mmr ? mmr.mmr : '–', t(ctx.mmr_is_pooled ? 'ctx_per_lakh_pooled' : 'ctx_per_lakh'), cmp(mmr && mmr.mmr, imm.mmr))}
+      ${tile(t('ctx_maternal_deaths'), fmtPeople(maternalDeaths), t('ctx_maternal_how'))}
+      ${bedsPer1k != null ? tile(t('ctx_beds_1k'), bedsPer1k.toFixed(2), t('ctx_beds_note')) : ''}
+    </div>
+    <div class="src-note">${t('ctx_sources')}: ${escHtml(ctx.sources.population)}; ${escHtml(ctx.sources.srs)}; ${escHtml(ctx.sources.mmr)}.
+      ${t('ctx_estimates_note')}</div>
+  </div>`;
+}
+function districtTable(rows) {
+  const km = v => v == null || isNaN(Number(v)) || Number(v) === 0 ? '–' : Number(v).toFixed(0) + ' km';
+  const whole = v => v == null || v === '' || isNaN(Number(v)) ? '–' : Math.round(Number(v)).toLocaleString('en-IN');
+  const cls = v => { const x = Number(v); return isNaN(x) || x === 0 ? '' : x < 20 ? 'close' : x < 60 ? 'mid' : 'far'; };
+  return `<div class="card">
+    <h2>🗂 ${t('dt_title')} (${rows.length}) <span class="h-note">${t('dt_note')}</span></h2>
+    <div style="overflow-x:auto"><table class="ftable dist-table">
+      <thead><tr>${['pl_district', 'dt_facilities', 'dt_hospitals', 'pl_beds', 'ICU', 'pl_blood_banks', 'dt_near_cs', 'dt_near_dial', 'dt_near_mri']
+        .map(k => `<th>${k === 'ICU' ? 'ICU' : t(k)}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r => `<tr onclick="pickDistrict('${escHtml(String(r.district).replace(/'/g, "\\'"))}')">
+        <td><strong>${escHtml(r.district)}</strong></td><td>${whole(r.n_facilities)}</td><td>${whole(r.n_hospitals)}</td>
+        <td>${whole(r.total_beds_listed)}</td><td>${whole(r.n_icu)}</td><td>${whole(r.n_blood_bank)}</td>
+        <td class="dist-val ${cls(r.km_nearest_emergency_c_section)}">${km(r.km_nearest_emergency_c_section)}</td>
+        <td class="dist-val ${cls(r.km_nearest_dialysis)}">${km(r.km_nearest_dialysis)}</td>
+        <td class="dist-val ${cls(r.km_nearest_mri)}">${km(r.km_nearest_mri)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`;
+}
+
+// ── Map ────────────────────────────────────────────────────────────────────
+let _leafletMap = null;
+
+function renderMap(facilities) {
+  // Load Leaflet JS lazily
+  if (!window.L) {
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => _initMap(facilities);
+    document.head.appendChild(script);
+  } else {
+    _initMap(facilities);
+  }
+}
+
+function _initMap(facilities) {
+  // Filter facilities with valid coords
+  const mapped = facilities.filter(f => f.lat_final && f.lon_final &&
+    Math.abs(Number(f.lat_final)) > 0.1 && Math.abs(Number(f.lon_final)) > 0.1);
+
+  if (!mapped.length) {
+    document.getElementById('facility-map').innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px">' + t('pl_no_map') + '</div>';
+    return;
+  }
+
+  // Destroy existing map instance
+  if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; }
+
+  const L = window.L;
+
+  // Centre on mean lat/lon
+  const latMean = mapped.reduce((s,f) => s + Number(f.lat_final), 0) / mapped.length;
+  const lonMean = mapped.reduce((s,f) => s + Number(f.lon_final), 0) / mapped.length;
+
+  _leafletMap = L.map('facility-map', { zoomControl: true }).setView([latMean, lonMean], 10);
+
+  // OpenStreetMap tiles (free, no key required)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(_leafletMap);
+
+  const colorFor = q => q === 'High' ? '#22c55e' : q === 'Medium' ? '#f59e0b' : '#ef4444';
+
+  for (const f of mapped) {
+    const lat = Number(f.lat_final), lon = Number(f.lon_final);
+    const color = colorFor(f.quality_label);
+
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(0,0,0,0.5);box-shadow:0 0 4px ${color}88"></div>`,
+      iconSize: [12, 12],
+      iconAnchor: [6, 6]
+    });
+
+    const popup = `
+      <div style="font-family:Inter,system-ui;min-width:200px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">${escHtml(f.name || '–')}</div>
+        <div style="color:#888;font-size:12px;margin-bottom:6px">${f.facility_type || ''} ${f.organization_type ? '· ' + f.organization_type : ''}</div>
+        ${f.beds ? `<div style="font-size:12px">🛏 ${escHtml(t('n_beds', { n: f.beds }))}</div>` : ''}
+        ${f.doctors ? `<div style="font-size:12px">👨‍⚕️ ${escHtml(t('n_doctors', { n: f.doctors }))}</div>` : ''}
+        ${f.official_phone ? `<div style="font-size:12px">📞 ${f.official_phone}</div>` : ''}
+        ${f.quality_label ? `<div style="margin-top:6px"><span style="background:${color}22;color:${color};padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">${t('ql_' + String(f.quality_label).toLowerCase())}</span></div>` : ''}
+      </div>`;
+
+    L.marker([lat, lon], { icon }).addTo(_leafletMap).bindPopup(popup);
+  }
+
+  // Fit to all markers
+  const group = L.featureGroup(mapped.map(f =>
+    L.marker([Number(f.lat_final), Number(f.lon_final)])
+  ));
+  _leafletMap.fitBounds(group.getBounds().pad(0.1));
+}
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Demo: preload a few past chats once per browser (they can be deleted like any chat).
+async function seedDemoChats() {
+  const FLAG = 'hospitalvoice_demo_seeded_v1';
+  try {
+    if (localStorage.getItem(FLAG)) return;
+    const res = await fetch('static/demo_chats.json');
+    if (!res.ok) return;
+    const demo = await res.json();
+    const chats = loadChats();
+    for (const c of demo) if (!chats.some(x => x.id === c.id)) chats.push(c);
+    chats.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+    storeChats(chats);
+    localStorage.setItem(FLAG, '1');
+    renderChatList();
+  } catch (e) { console.warn('Demo chats not loaded', e); }
+}
+
+// Init
+try { currentLang = localStorage.getItem('hospitalvoice_lang') || 'en'; } catch (e) {}
+setupSpeech();
+setEmergency(true);
+applyLang();
+seedDemoChats();
+</script>
+</body>
+</html>

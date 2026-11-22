@@ -1,0 +1,22 @@
+state_key,state_name,mmr,mmr_ci_low,mmr_ci_high,maternal_mortality_rate,lifetime_risk_pct
+india,India,88,79,96,5,0.18
+assam,Assam,110,53,167,6,0.23
+bihar,Bihar,104,68,140,10,0.34
+jharkhand,Jharkhand,54,10,98,4,0.13
+madhyapradesh,Madhya Pradesh,142,100,185,12,0.41
+chhattisgarh,Chhattisgarh,146,63,229,10,0.37
+odisha,Odisha,153,98,208,9,0.31
+rajasthan,Rajasthan,86,49,122,7,0.25
+uttarpradesh,Uttar Pradesh,141,104,177,12,0.41
+uttarakhand,Uttarakhand,91,45,136,5,0.19
+andhrapradesh,Andhra Pradesh,30,3,56,2,0.05
+telangana,Telangana,59,14,105,3,0.11
+karnataka,Karnataka,68,34,103,3,0.12
+kerala,Kerala,30,2,58,1,0.05
+tamilnadu,Tamil Nadu,35,10,60,2,0.05
+gujarat,Gujarat,51,23,78,3,0.12
+haryana,Haryana,89,43,135,6,0.22
+maharashtra,Maharashtra,36,13,60,2,0.06
+punjab,Punjab,90,31,150,5,0.16
+westbengal,West Bengal,104,64,143,5,0.17
+otherstates,Other states,86,63,108,4,0.15
