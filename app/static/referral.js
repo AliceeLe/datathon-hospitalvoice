@@ -32,7 +32,11 @@ function refRegisterSet(hospitals) {
 }
 let REF_ACTIVE = null;   // case being worked on: Contact is locked on every other card until it ends
 function refContactButton(key, i) {
-  return `<button class="call-btn contact-btn" ${REF_ACTIVE ? 'disabled' : ''}
+  const h = REF_SETS[key] && REF_SETS[key][i];
+  const noPhone = !h || !h.phone;
+  const dis = REF_ACTIVE || noPhone;
+  const title = noPhone ? ` title="${escHtml(t('ref_no_number'))}"` : '';
+  return `<button class="call-btn contact-btn" ${dis ? 'disabled' : ''}${title}
             onclick="refChoose('${key}', ${i})">📞 ${escHtml(t('contact'))}</button>`;
 }
 function refLock(caseId) {
@@ -124,7 +128,7 @@ function refCall(caseId) {
     <div class="ref-grid three">
       <button class="ref-btn ok" onclick="refAccepted('${caseId}', 'accepted_slot')">✅ ${t('ref_gave_date')}</button>
       <button class="ref-btn bad" onclick="refTurnedAway('${caseId}')">❌ ${t('ref_turned_away')}</button>
-      <button class="ref-btn" onclick="refNoAnswer('${caseId}')">📵 ${t('ref_no_answer')}</button>
+      <button class="ref-btn neutral" onclick="refNoAnswer('${caseId}')">📵 ${t('ref_no_answer')}</button>
     </div>
     <div class="ref-error"></div>
     <button class="linkbtn" onclick="refBackToChat('${caseId}')">← ${t('ref_back')}</button>`);

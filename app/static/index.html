@@ -147,20 +147,6 @@
     font-size: 15px;
   }
 
-  .emergency-notice {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(239,68,68,0.06);
-    border: 1px solid rgba(239,68,68,0.2);
-    border-left: 3px solid var(--emergency);
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    font-size: 13px;
-    color: #fca5a5;
-    margin-bottom: 28px;
-    backdrop-filter: blur(8px);
-  }
 
   .emergency-toggle {
     display: flex;
@@ -219,7 +205,7 @@
     border-radius: 50%;
     border: none;
     cursor: pointer;
-    font-size: 36px;
+    font-size: 0;
     margin-bottom: 20px;
     transition: all 0.3s ease;
     display: inline-flex;
@@ -689,8 +675,12 @@
              padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2);
              color: var(--text); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; }
   .ref-btn:hover { border-color: var(--accent); }
-  .ref-btn.ok { background: var(--success); color: #06210f; border-color: var(--success); }
-  .ref-btn.bad { border-color: var(--emergency); color: #fca5a5; }
+  .ref-btn.ok { background: rgba(34,197,94,0.15); color: #22c55e; border-color: #22c55e; font-weight: 700; }
+  .ref-btn.ok:hover { background: rgba(34,197,94,0.28); }
+  .ref-btn.bad { background: rgba(239,68,68,0.1); color: #ef4444; border-color: #ef4444; font-weight: 700; }
+  .ref-btn.bad:hover { background: rgba(239,68,68,0.2); }
+  .ref-btn.neutral { background: var(--surface2); color: var(--muted); border-color: var(--border); font-weight: 600; }
+  .ref-btn.neutral:hover { border-color: var(--muted); color: var(--text); }
   .ref-btn.sel { border: 2px solid var(--accent); background: rgba(79,142,247,.15); }
   .ref-btn.wide { width: 100%; margin-top: 14px; }
   .ref-btn:disabled { opacity: .5; cursor: wait; }
@@ -898,7 +888,7 @@
 <body>
 <div class="shell">
 <aside class="nav" id="nav">
-  <div class="nav-brand">🏥 Hospital<span>Voice</span></div>
+  <div class="nav-brand">Hospital<span>Voice</span></div>
   <button class="nav-item" onclick="newChat()"><span data-i18n="nav_new">✏️ New chat</span></button>
   <button class="nav-item" onclick="openSearch()"><span data-i18n="nav_search">🔍 Search</span> <span class="kbd">Ctrl K</span></button>
   <button class="nav-item" id="nav-tracker" onclick="setMode('tracker')"><span data-i18n="nav_tracker">📋 Patient Tracker</span></button>
@@ -910,7 +900,7 @@
 <!-- Mode bar -->
 <div class="mode-bar">
   <button class="nav-toggle" onclick="document.getElementById('nav').classList.toggle('open')" title="Menu">☰</button>
-  <div class="bar-brand">🏥 Hospital<span>Voice</span></div>
+  <div class="bar-brand">Hospital<span>Voice</span></div>
   <div class="mode-toggle">
     <button class="mode-btn active" onclick="setMode('user')" id="btn-user" data-i18n="mode_user">🎙 Find Facility</button>
     <button class="mode-btn" onclick="setMode('planner')" id="btn-planner" data-i18n="mode_planner">📊 Planner Dashboard</button>
@@ -924,8 +914,12 @@
   <button id="tts-toggle" onclick="toggleTTS()" title="Toggle read-aloud"
     style="margin-left:10px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);
            background:none;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;
-           font-family:inherit;transition:all 0.2s;white-space:nowrap">
-    🔇 Read Aloud
+           font-family:inherit;transition:all 0.2s;white-space:nowrap;display:flex;align-items:center;gap:6px">
+    <svg id="tts-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+    </svg>
+    Read Aloud
   </button>
 </div>
 
@@ -937,11 +931,9 @@
       <p data-i18n="hero_sub">Ask in your language — voice or text — and get matched to the right facility</p>
     </div>
 
-    <div class="emergency-notice" data-i18n-html="notice">🚨 Emergency? Call <strong>112</strong> or <strong>108</strong> immediately.</div>
-
     <div class="emergency-toggle">
-      <button class="etype-btn emergency active" onclick="setEmergency(true)" data-i18n="btn_emergency">🚑 Emergency</button>
-      <button class="etype-btn non-emergency" onclick="setEmergency(false)" data-i18n="btn_nonemergency">🏥 Non-Emergency</button>
+      <button class="etype-btn emergency active" onclick="setEmergency(true)" data-i18n="btn_emergency">Emergency</button>
+      <button class="etype-btn non-emergency" onclick="setEmergency(false)" data-i18n="btn_nonemergency">Non-Emergency</button>
     </div>
 
     <div class="intake" id="intake">
@@ -951,20 +943,20 @@
       <label for="intake-address" data-i18n="q1">1. What is your address?</label>
       <div class="intake-row">
         <textarea id="intake-address" rows="2" data-i18n-ph="ph_address" placeholder="e.g. Civil Lines, Barabanki, Uttar Pradesh 225001"></textarea>
-        <button class="field-mic" title="Speak your address" onclick="startListening('intake-address', this)">🎤</button>
+        <button class="field-mic" title="Speak your address" onclick="startListening('intake-address', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button>
       </div>
 
       <label for="intake-need" data-i18n="q2">2. What does the patient need?</label>
       <div class="intake-row">
         <textarea id="intake-need" rows="2" placeholder="e.g. Woman in labour who needs an emergency C-section"></textarea>
-        <button class="field-mic" title="Speak the patient's need" onclick="startListening('intake-need', this)">🎤</button>
+        <button class="field-mic" title="Speak the patient's need" onclick="startListening('intake-need', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button>
       </div>
 
       <div id="freq-block" style="display:none">
         <label for="intake-freq" data-i18n="q3">3. How often does the patient need treatment?</label>
         <div class="intake-row">
           <textarea id="intake-freq" rows="2" data-i18n-ph="ph_freq" placeholder="e.g. Dialysis 3 times a week, ongoing"></textarea>
-          <button class="field-mic" title="Speak how often treatment is needed" onclick="startListening('intake-freq', this)">🎤</button>
+          <button class="field-mic" title="Speak how often treatment is needed" onclick="startListening('intake-freq', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button>
         </div>
       </div>
 
@@ -975,7 +967,14 @@
     <div id="answers"></div>
 
     <div class="voice-area" id="followup-area">
-      <button class="mic-btn" id="mic-btn" onclick="toggleListening()">🎤</button>
+      <button class="mic-btn" id="mic-btn" onclick="toggleListening()">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="17" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+      </button>
       <div class="status-text" id="status-text">Tap mic and ask about facilities near you</div>
       <textarea class="question-box" id="question-box" rows="2" data-i18n-ph="ph_followup"
         placeholder="Ask a follow-up, e.g. Which of these has a blood bank?"></textarea>
@@ -1271,26 +1270,45 @@ function isInsufficient(data) {
 
 // ── Text-to-speech ──────────────────────────────────────────────────────────
 let ttsEnabled = false;
+let _ttsPending = null; // last answer text — spoken when TTS is enabled by user gesture
+
+const _TTSIconOn  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
+const _TTSIconOff = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+
+function _setTTSBtnState(on) {
+  const btn = document.getElementById('tts-toggle');
+  document.getElementById('tts-icon').outerHTML = (on ? _TTSIconOn : _TTSIconOff);
+  btn.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
+  btn.style.color       = on ? 'var(--accent)' : 'var(--muted)';
+  btn.style.background  = on ? 'var(--accent-glow)' : 'none';
+}
 
 function toggleTTS() {
   ttsEnabled = !ttsEnabled;
-  const btn = document.getElementById('tts-toggle');
-  if (ttsEnabled) {
-    btn.textContent = '🔊 Read Aloud';
-    btn.style.borderColor = 'var(--accent)';
-    btn.style.color = 'var(--accent)';
-    btn.style.background = 'var(--accent-glow)';
-  } else {
-    btn.textContent = '🔇 Read Aloud';
-    btn.style.borderColor = 'var(--border)';
-    btn.style.color = 'var(--muted)';
-    btn.style.background = 'none';
-    window.speechSynthesis && window.speechSynthesis.cancel();
+  _setTTSBtnState(ttsEnabled);
+  if (ttsEnabled && window.speechSynthesis) {
+    if (_ttsPending) {
+      // speak directly inside this user-gesture handler — always works
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(_ttsPending);
+      utt.lang = langCode(currentLang);
+      utt.rate = 0.95;
+      window.speechSynthesis.speak(utt);
+    } else {
+      // prime the engine with a silent utterance for future async calls
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      window.speechSynthesis.speak(u);
+    }
+  } else if (!ttsEnabled && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
   }
 }
 
 function speakText(text) {
-  if (!ttsEnabled || !window.speechSynthesis || !text) return;
+  if (!window.speechSynthesis || !text) return;
+  _ttsPending = text; // always keep the latest answer available for replay
+  if (!ttsEnabled) return;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = langCode(currentLang);
@@ -1423,19 +1441,19 @@ function confirmSent() {
     <div class="lead">${t('case_lead')}</div>
     <label for="case-name">${t('f_name')}</label>
     <div class="intake-row"><input id="case-name" autocomplete="off">
-      <button class="field-mic" title="Speak" onclick="startListening('case-name', this)">🎤</button></div>
+      <button class="field-mic" title="Speak" onclick="startListening('case-name', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button></div>
     <label for="case-address">${t('f_address')}</label>
     <div class="intake-row"><input id="case-address" autocomplete="off" value="${escHtml(ctx.address)}">
-      <button class="field-mic" title="Speak" onclick="startListening('case-address', this)">🎤</button></div>
+      <button class="field-mic" title="Speak" onclick="startListening('case-address', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button></div>
     <label for="case-phone">${t('f_phone')}</label>
     <div class="intake-row"><input id="case-phone" type="tel" autocomplete="off" placeholder="+91 …">
-      <button class="field-mic" title="Speak" onclick="startListening('case-phone', this)">🎤</button></div>
+      <button class="field-mic" title="Speak" onclick="startListening('case-phone', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button></div>
     <label for="case-dob">${t('f_dob')}</label>
     <input id="case-dob" type="date" max="${new Date().toISOString().slice(0, 10)}">
     <label for="case-program">${t('f_program')}</label>
     <div class="intake-row"><input id="case-program" list="care-programs" autocomplete="off"
         placeholder="e.g. PM-JAY (Ayushman Bharat), Janani Suraksha Yojana, none">
-      <button class="field-mic" title="Speak" onclick="startListening('case-program', this)">🎤</button></div>
+      <button class="field-mic" title="Speak" onclick="startListening('case-program', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button></div>
     <datalist id="care-programs">
       <option>PM-JAY (Ayushman Bharat)</option><option>Janani Suraksha Yojana (JSY)</option>
       <option>Janani Shishu Suraksha Karyakram (JSSK)</option><option>PM National Dialysis Programme</option>
@@ -1444,17 +1462,17 @@ function confirmSent() {
     <label for="case-history">${t('f_history')}</label>
     <div class="intake-row"><textarea id="case-history" rows="3"
         placeholder="Conditions, previous surgeries, allergies, current medication"></textarea>
-      <button class="field-mic" title="Speak" onclick="startListening('case-history', this)">🎤</button></div>
+      <button class="field-mic" title="Speak" onclick="startListening('case-history', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button></div>
     <label for="case-contacts">${t('f_contacts')}</label>
     <div class="intake-row"><textarea id="case-contacts" rows="2"
         placeholder="Name, relation, phone, e.g. Ramesh Kumar, husband, +91 98xxx xxxxx"></textarea>
-      <button class="field-mic" title="Speak" onclick="startListening('case-contacts', this)">🎤</button></div>
+      <button class="field-mic" title="Speak" onclick="startListening('case-contacts', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button></div>
     <label for="case-hospital">${t('f_hospital')}</label>
     <select id="case-hospital">${opts}</select>
     <label for="case-desc">${t('f_desc')}</label>
     <div class="intake-row"><textarea id="case-desc" rows="4"
       placeholder="${t('ph_desc')}">${escHtml(desc)}</textarea>
-      <button class="field-mic" title="Speak" onclick="startListening('case-desc', this)">🎤</button></div>
+      <button class="field-mic" title="Speak" onclick="startListening('case-desc', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></button></div>
     <div class="intake-error" id="case-error"></div>
     <div class="btn-row">
       <button class="ask-btn" style="background:var(--surface2)" onclick="cancelCase()">${t('back_chat')}</button>
